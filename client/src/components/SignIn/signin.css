@@ -1,0 +1,439 @@
+/* Base Styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+  }
+  
+  /* Main Container */
+  .login-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+  
+  /* Header */
+  .header {
+    padding: 20px 0;
+    text-align: center;
+    animation: fadeDown 0.8s ease-out;
+  }
+  
+  .title {
+    color: #82001A;
+    font-size: 28px;
+    font-weight: 700;
+    position: relative;
+    display: inline-block;
+  }
+  
+  .title::after {
+    content: '';
+    position: absolute;
+    width: 50%;
+    height: 3px;
+    background-color: #82001A;
+    bottom: -5px;
+    left: 25%;
+    transform: scaleX(0);
+    animation: titleLine 1s ease-out forwards;
+    animation-delay: 0.5s;
+  }
+  
+  /* Login Wrapper with Page Transitions */
+  .login-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 450px;
+    margin: 0 auto;
+    position: relative;
+    transition: transform 0.4s ease, opacity 0.4s ease;
+  }
+  
+  .page-enter {
+    opacity: 1;
+    transform: translateY(0);
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  .page-exit {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeOut 0.4s ease-in;
+  }
+  
+  /* Tabs with Animation - INCREASED WIDTH */
+  .tabs-container {
+    width: 100%;
+    max-width: 400px; /* Increased from 350px */
+    margin-bottom: 25px;
+    animation: fadeDown 0.6s ease-out;
+    animation-delay: 0.2s;
+    animation-fill-mode: both;
+  }
+  
+  .tabs {
+    display: flex;
+    background-color: rgba(130, 0, 26, 0.08);
+    border-radius: 25px;
+    padding: 5px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .tab {
+    flex: 1;
+    padding: 10px 0;
+    text-align: center;
+    border: none;
+    background-color: transparent;
+    color: #82001A;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+    transition: color 0.3s ease;
+    border-radius: 20px;
+  }
+  
+  .tab-text {
+    position: relative;
+    z-index: 2;
+    transition: transform 0.3s ease, color 0.3s ease;
+  }
+  
+  .tab:hover .tab-text {
+    transform: translateY(-2px);
+  }
+  
+  .tab.active {
+    color: white;
+  }
+  
+  .tab-indicator {
+    position: absolute;
+    width: calc(50% - 10px); /* Adjusted width to fit properly */
+    height: calc(100% - 10px);
+    background-color: #82001A;
+    border-radius: 20px;
+    top: 5px;
+    left: 5px;
+    z-index: 1;
+    transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  }
+  
+  /* Card with Animation */
+  .card {
+    width: 100%;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 25px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .login-card {
+    animation: cardAppear 0.7s cubic-bezier(0.21, 1.02, 0.73, 1);
+  }
+  
+  .club-card {
+    animation: cardAppear 0.7s cubic-bezier(0.21, 1.02, 0.73, 1);
+  }
+  
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+  }
+  
+  .card-body {
+    padding: 30px;
+  }
+  
+  .card-title {
+    color: #82001A;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    text-align: center;
+    position: relative;
+    display: inline-block;
+    width: 100%;
+  }
+  
+  .card-title::after {
+    content: '';
+    position: absolute;
+    width: 40px;
+    height: 3px;
+    background-color: #82001A;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: lineExpand 0.8s ease-out forwards;
+    animation-delay: 0.3s;
+  }
+  
+  /* Form with Animations */
+  .login-form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+    position: relative;
+    transition: transform 0.3s ease;
+  }
+  
+  .form-group.focused {
+    transform: translateY(-3px);
+  }
+  
+  .form-group label {
+    display: block;
+    color: #82001A;
+    font-weight: 500;
+    margin-bottom: 8px;
+    transition: transform 0.3s ease, color 0.3s ease;
+  }
+  
+  .form-group.focused label {
+    color: #5c0012;
+    transform: translateY(-3px);
+  }
+  
+  .form-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #82001A;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    z-index: 1;
+    background-color: transparent;
+  }
+  
+  .form-group input:focus {
+    outline: none;
+    border-color: #5c0012;
+  }
+  
+  .focus-border {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #82001A;
+    transition: width 0.3s ease;
+    z-index: 0;
+  }
+  
+  .form-group.focused .focus-border {
+    width: 100%;
+  }
+  
+  .form-group input::placeholder {
+    color: #aaa;
+    transition: opacity 0.3s ease;
+  }
+  
+  .form-group.focused input::placeholder {
+    opacity: 0.7;
+  }
+  
+  /* Updated Button with Simple Hover Effect */
+  .btn-primary {
+    background-color: #82001A;
+    color: white;
+    border: 2px solid #82001A;
+    border-radius: 8px;
+    padding: 14px 20px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  
+  .btn-primary:hover {
+    background-color: #5c0012;
+    transform: translateY(-3px);
+  }
+  
+  .btn-primary:active {
+    transform: translateY(1px);
+  }
+  
+  /* Form Footer */
+  .form-footer {
+    margin-top: 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: fadeUp 0.6s ease-out;
+    animation-delay: 0.6s;
+    animation-fill-mode: both;
+  }
+  
+  .form-link {
+    color: #82001A;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease, transform 0.2s ease;
+    display: inline-block;
+  }
+  
+  .form-link:hover {
+    color: #5c0012;
+    transform: translateY(-2px);
+  }
+  
+  .club-link {
+    color: #82001A;
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-top: 12px;
+    font-weight: 500;
+    transition: color 0.2s ease, transform 0.2s ease;
+    padding: 5px;
+    position: relative;
+  }
+  
+  .club-link::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 1px;
+    background-color: #82001A;
+    bottom: 2px;
+    left: 0;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.3s ease;
+  }
+  
+  .club-link:hover {
+    color: #5c0012;
+    transform: translateY(-2px);
+  }
+  
+  .club-link:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+  
+  .back-link {
+    margin-top: 15px;
+  }
+  
+  /* Keyframe Animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes fadeOut {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+  }
+  
+  @keyframes fadeDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes cardAppear {
+    0% {
+      opacity: 0;
+      transform: scale(0.9) translateY(20px);
+    }
+    70% {
+      opacity: 1;
+      transform: scale(1.02) translateY(-5px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+  
+  @keyframes lineExpand {
+    from {
+      width: 0;
+    }
+    to {
+      width: 40px;
+    }
+  }
+  
+  @keyframes titleLine {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  
+  /* Responsive */
+  @media (max-width: 500px) {
+    .card-body {
+      padding: 20px;
+    }
+    
+    .form-group input {
+      padding: 10px 12px;
+    }
+    
+    .btn-primary {
+      padding: 12px 16px;
+    }
+    
+    .tabs-container {
+      max-width: 95%; /* Make it responsive on small screens */
+    }
+  }
