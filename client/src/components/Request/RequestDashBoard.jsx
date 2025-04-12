@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { BsCheckCircle, BsXCircle, BsClock, BsCollection } from 'react-icons/bs';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './RequestDashboard.css';
+import '../Request/RequestDashBoard.css';
 
 const RequestDashboard = () => {
   const [activeView, setActiveView] = useState('all');
