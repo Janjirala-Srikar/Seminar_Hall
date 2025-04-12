@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import emailjs from 'emailjs-com'; // Make sure to import EmailJS
 
-const ClubInfoForm = () => {
+const ClubInfoCard = () => {
   const [formData, setFormData] = useState({
     clubName: "",
     description: "",
@@ -428,4 +428,4 @@ const ClubInfoForm = () => {
   );
 };
 
-export default ClubInfoForm;
+export default ClubInfoCard;
