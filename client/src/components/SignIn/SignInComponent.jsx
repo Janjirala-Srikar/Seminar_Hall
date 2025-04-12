@@ -5,7 +5,7 @@ import './signin.css';
 // Import Firebase modules
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -31,6 +31,7 @@ function SignInComponent() {
   const [currentPage, setCurrentPage] = useState('login');
   const [animationState, setAnimationState] = useState('enter');
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
   
   // Form inputs state
@@ -41,7 +42,8 @@ function SignInComponent() {
     adminPassword: '',
     clubName: '',
     clubEmail: '',
-    facultyCoordinator: ''
+    facultyCoordinator: '',
+    resetEmail: '' // Added for password reset
   });
   
   const [inputFocus, setInputFocus] = useState({
@@ -51,13 +53,15 @@ function SignInComponent() {
     adminPassword: false,
     clubName: false,
     clubEmail: false,
-    facultyCoordinator: false
+    facultyCoordinator: false,
+    resetEmail: false // Added for password reset
   });
 
   // Handle page transitions with animation
   const changePage = (page) => {
     setAnimationState('exit');
     setError('');
+    setSuccessMessage('');
     
     setTimeout(() => {
       setCurrentPage(page);
@@ -69,6 +73,7 @@ function SignInComponent() {
     // Animate tab change
     setActiveTab(tab);
     setError('');
+    setSuccessMessage('');
   };
 
   const handleInputFocus = (field, isFocused) => {
@@ -149,6 +154,31 @@ function SignInComponent() {
     }
   };
 
+  // Handle password reset
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccessMessage('');
+    
+    try {
+      // For faculty, construct email from ID if needed
+      let resetEmail = formInputs.resetEmail;
+      if (activeTab === 'user' && !resetEmail.includes('@')) {
+        resetEmail = `${resetEmail}@vnrvjiet.edu.in`; // Example domain
+      }
+      
+      await sendPasswordResetEmail(auth, resetEmail);
+      setSuccessMessage('Password reset email sent! Please check your inbox.');
+      setFormInputs(prev => ({ ...prev, resetEmail: '' }));
+    } catch (error) {
+      console.error('Password reset error:', error.message);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Render the login page with tabs
   const renderLoginPage = () => (
     <div className={`login-wrapper ${animationState === 'enter' ? 'page-enter' : 'page-exit'}`}>
@@ -178,6 +208,7 @@ function SignInComponent() {
           <h2 className="card-title">Login</h2>
           
           {error && <div className="error-message">{error}</div>}
+          {successMessage && <div className="success-message">{successMessage}</div>}
           
           {activeTab === 'user' ? (
             <form className="login-form" onSubmit={handleUserLogin}>
@@ -218,7 +249,13 @@ function SignInComponent() {
               </button>
               
               <div className="form-footer">
-                <a href="#" className="form-link">Forgot password?</a>
+                <button 
+                  type="button" 
+                  className="form-link"
+                  onClick={() => changePage('forgot')}
+                >
+                  Forgot password?
+                </button>
                 <button 
                   type="button" 
                   className="club-link"
@@ -267,7 +304,13 @@ function SignInComponent() {
               </button>
               
               <div className="form-footer">
-                <a href="#" className="form-link">Forgot password?</a>
+                <button 
+                  type="button" 
+                  className="form-link"
+                  onClick={() => changePage('forgot')}
+                >
+                  Forgot password?
+                </button>
                 <button 
                   type="button" 
                   className="club-link"
@@ -357,13 +400,100 @@ function SignInComponent() {
     </div>
   );
 
+  // Render the forgot password page
+  const renderForgotPasswordPage = () => (
+    <div className={`login-wrapper ${animationState === 'enter' ? 'page-enter' : 'page-exit'}`}>
+      <div className="card forgot-card">
+        <div className="card-body">
+          <h2 className="card-title">Reset Password</h2>
+          
+          {error && <div className="error-message">{error}</div>}
+          {successMessage && <div className="success-message">{successMessage}</div>}
+          
+          <form className="login-form" onSubmit={handlePasswordReset}>
+            <div className={`form-group ${inputFocus.resetEmail ? 'focused' : ''}`}>
+              <label htmlFor="resetEmail">
+                {activeTab === 'user' ? 'Faculty ID or Email' : 'Email'}
+              </label>
+              <input
+                type={activeTab === 'user' ? 'text' : 'email'}
+                id="resetEmail"
+                placeholder={activeTab === 'user' ? 'Enter Faculty ID or Email' : 'Enter email'}
+                value={formInputs.resetEmail}
+                onChange={(e) => handleInputChange('resetEmail', e.target.value)}
+                onFocus={() => handleInputFocus('resetEmail', true)}
+                onBlur={() => handleInputFocus('resetEmail', false)}
+                required
+              />
+              <div className="focus-border"></div>
+            </div>
+            <p className="reset-instructions">
+              Enter your {activeTab === 'user' ? 'faculty ID or email' : 'email'} address and we'll send you a link to reset your password.
+            </p>
+            <button 
+              type="submit" 
+              className="btn-primary"
+              disabled={loading}
+            >
+              {loading ? 'Sending...' : 'Send Reset Link'}
+            </button>
+            <div className="form-footer">
+              <button 
+                type="button" 
+                className="club-link back-link"
+                onClick={() => changePage('login')}
+              >
+                Back to Login
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="login-container">
       <header className="header">
         <h1 className="title">VNR VJIET</h1>
       </header>
 
-      {currentPage === 'login' ? renderLoginPage() : renderClubPage()}
+      {currentPage === 'login' && renderLoginPage()}
+      {currentPage === 'club' && renderClubPage()}
+      {currentPage === 'forgot' && renderForgotPasswordPage()}
+      
+      <style jsx>{`
+        .success-message {
+          background-color: rgba(39, 174, 96, 0.1);
+          color: #27ae60;
+          padding: 10px 15px;
+          border-radius: 4px;
+          margin-bottom: 20px;
+          font-size: 14px;
+          border-left: 4px solid #27ae60;
+        }
+        
+        .reset-instructions {
+          font-size: 14px;
+          color: #666;
+          margin-bottom: 20px;
+          font-style: italic;
+        }
+        
+        .form-link {
+          background: none;
+          border: none;
+          color: #4285f4;
+          padding: 0;
+          font-size: 14px;
+          cursor: pointer;
+          text-decoration: none;
+        }
+        
+        .form-link:hover {
+          text-decoration: underline;
+        }
+      `}</style>
     </div>
   );
 }
