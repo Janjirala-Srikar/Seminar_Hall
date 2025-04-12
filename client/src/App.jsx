@@ -7,7 +7,7 @@ import Footer from './components/Footer';
 import Calender from './components/Calender/Calender';
 import DirectorDashboard from './components/Director/DirectorDashboard';
 import SigInComponent from './components/SignIn/SignInComponent';
-import ClubInfoCard from './components/clubInfocard';
+import ClubInfoCard from './components/clubInfoCard';
 import ClubRegistrationLanding from './components/ClubRegistrationLanding';
 import Main from './components/Main/Main';
 
