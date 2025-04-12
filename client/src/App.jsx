@@ -9,6 +9,7 @@ import DirectorDashboard from './components/Director/DirectorDashboard';
 import SigInComponent from './components/SignIn/SignInComponent';
 import ClubInfoCard from './components/clubinfocard';
 import ClubRegistrationLanding from './components/ClubRegistrationLanding';
+import Main from './components/Main/Main';
 
 function App() {
   return (
@@ -19,7 +20,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/calendar" element={<Calender />} />
           <Route path="/signin" element={<SigInComponent />} />
-          <Route path="/signup" element={<SigInComponent />} />
+          <Route path="/Home" element={<Main />} />
           <Route path="/director" element={<DirectorDashboard />} />
           <Route path="/club" element={<ClubInfoCard />} />
           <Route path="/clubreg" element={<ClubRegistrationLanding />} />
