@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import emailjs from 'emailjs-com'; // Make sure to import EmailJS
+import axios from 'axios';
 
 const ClubInfoCard = () => {
   const [formData, setFormData] = useState({
@@ -124,7 +125,7 @@ const ClubInfoCard = () => {
         break;
       }
     }
-
+  
     if (isFormValid) {
       setIsSubmitting(true);
       
@@ -140,23 +141,32 @@ const ClubInfoCard = () => {
             departmentAffiliation: formData.departmentAffiliation,
             facultyAdvisorName: formData.facultyAdvisorName,
             contactEmail: formData.contactEmail,
-            // Add this to explicitly set the recipient(s)
-            to_email: "lumora911@gmail.com,srikarjanjirala92@gmail.com,shaikafzalelahi@gmail.com,ashishlukka2005@gmail.com,swaroopmallidi7777@gmail.com" // Complete the email that was cut off
+            to_email: "lumora911@gmail.com,srikarjanjirala92@gmail.com,shaikafzalelahi@gmail.com,ashishlukka2005@gmail.com,swaroopmallidi7777@gmail.com"
           },
           "cDxpGfoDN7I6s16zA"
         );
-
+  
+        // 🌟 Add this: Send data to your backend
+        await axios.post('http://localhost:5000/api/clubs', {
+          clubName: formData.clubName,
+          description: formData.description,
+          facultyAdvisorName: formData.facultyAdvisorName,
+          contactEmail: formData.contactEmail,
+          contactPhone: formData.contactPhone, // make sure this is in your formData
+          departmentAffiliation: formData.departmentAffiliation,
+          clubCategory: formData.clubCategory, // also ensure it's part of your formData
+          establishedDate: formData.establishedDate,
+        });
+  
         console.log('Form submitted with data:', formData);
         setIsSubmitting(false);
-        alert("Club information submitted successfully!");
-        
+        alert("Club information submitted and saved successfully!");
+  
       } catch (error) {
         console.error("Error during form submission:", error);
         setIsSubmitting(false);
         alert("There was an error submitting the form. Please try again.");
       }
-
-      //post in database
     }
   };
 

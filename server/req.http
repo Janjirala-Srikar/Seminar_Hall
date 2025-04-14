@@ -1,0 +1,13 @@
+POST http://localhost:5000/api/clubs
+Content-Type: application/json
+
+{
+  "clubName": "Tech Innovators",
+  "description": "A club focused on emerging technologies and innovation",
+  "facultyAdvisorName": "Dr. Jane Smith",
+  "contactEmail": "techinnovators@example.com",
+  "contactPhone": "555-123-4567",
+  "departmentAffiliation": "Computer Science",
+  "clubCategory": "Technology",
+  "establishedDate": "2025-04-01"
+}
