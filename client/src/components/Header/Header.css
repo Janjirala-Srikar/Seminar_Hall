@@ -15,6 +15,7 @@
   width: calc(100% - 240px);
   max-width: 1400px;
   margin: 10px auto 0;
+  background-color: white;
   transition: all 0.3s ease;
 }
 

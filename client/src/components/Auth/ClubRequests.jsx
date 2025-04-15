@@ -54,53 +54,106 @@ function ClubRequests() {
     }
     return password;
   };
+
+  // Create user in backend database
+  const createUserInBackend = async (userData) => {
+    try {
+      const response = await fetch('http://localhost:5000/api/users/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      });
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || "Failed to create user in backend");
+      }
+      
+      return data.data; // Return the created user data
+    } catch (err) {
+      console.error("Error creating user in backend:", err);
+      throw err;
+    }
+  };
   
   const handleApprove = async (id, email, clubName) => {
     try {
       setProcessingId(id);
-      // 1. Generate a random password
-      const password = generateRandomPassword(12);
-      console.log(password);
       
-      // 2. Check if email already exists
+      // 1. Find the complete club data from clubs array
+      const clubData = clubs.find(club => club._id === id);
+      if (!clubData) {
+        throw new Error("Club data not found");
+      }
+      
+      // 2. Check if email already exists in Firebase
       let userExists = false;
+      let firebaseUid = null;
+      
       try {
         const methods = await fetchSignInMethodsForEmail(auth, email);
         userExists = methods && methods.length > 0;
+        
+        if (userExists) {
+          // If user already exists in Firebase, we don't want to proceed
+          setProcessingId(null);
+          alert(`Email ${email} is already registered. Please use a different email address.`);
+          return; // Exit the function early
+        }
       } catch (error) {
         console.log("Error checking email existence:", error);
+        throw error; // Propagate the error
       }
       
-      // 3. Create Firebase user if it doesn't exist
-      if (!userExists) {
-        try {
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          console.log("Created Firebase user:", userCredential.user.uid);
-        } catch (err) {
-          // If this specific error occurs, we'll continue with the process
-          if (err.code === 'auth/email-already-in-use') {
-            console.log("Email already in use, continuing with approval process");
-            userExists = true;
-          } else {
-            // For other errors, we'll stop and throw the error
-            throw err;
-          }
-        }
-      } else {
-        console.log("User account already exists, continuing with approval process");
-        // You might want to consider generating a password reset link instead
+      // 3. Generate a random password (only if we passed the previous step)
+      const password = generateRandomPassword(12);
+      console.log(password);
+      
+      // 4. Create Firebase user (we know it doesn't exist)
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        console.log("Created Firebase user:", userCredential.user.uid);
+        firebaseUid = userCredential.user.uid;
+      } catch (err) {
+        console.error("Error creating Firebase user:", err);
+        
+        // If the error is about email already in use, show a specific message
+        if (err.code === 'auth/email-already-in-use') {
+          setProcessingId(null);
+          alert(`Email ${email} is already registered. Please use a different email address.`);
+          return; // Exit the function early
+        } 
+        
+        // For any other error, just throw it to be caught by the outer catch block
+        throw err;
       }
       
-      // 4. Send email with credentials
+      // 5. Create user in backend database
+      const userData = {
+        email: clubData.contactEmail,
+        clubName: clubData.clubName,
+        phoneNumber: clubData.contactPhone || "", // Add fallback if phone might be missing
+        clubCategory: clubData.clubCategory,
+        firebaseUid: firebaseUid,
+        role: "club_admin", // Assuming club admins have this role
+        status: "active"
+      };
+      
+      // Create the user in the backend
+      await createUserInBackend(userData);
+      console.log("Created user in backend database");
+      
+      // 6. Send email with credentials
       const emailParams = {
         to_email: email,
         subject: "Your Club Account Has Been Approved",
         club_name: clubName,
         club_email: email,
-        club_password: userExists ? "Your existing password" : password,
-        message: userExists 
-          ? "Your club has been approved. You can log in with your existing credentials."
-          : "Your club has been approved. You can now log in with the credentials below."
+        club_password: password,
+        message: "Your club has been approved. You can now log in with the credentials below."
       };
       
       // Using the updated EmailJS send method
@@ -112,7 +165,7 @@ function ClubRequests() {
       );
       console.log("Email sent:", emailResult);
       
-      // 5. Update club status in your database
+      // 7. Update club status in your database
       const response = await fetch(`http://localhost:5000/api/clubs/approve/${id}`, {
         method: 'PUT',
         headers: {
@@ -126,7 +179,7 @@ function ClubRequests() {
         console.log("Club approved successfully:", data.data);
         // Refresh the clubs list after approval
         fetchClubs();
-        alert(`Club "${clubName}" approved successfully! ${userExists ? 'Notification' : 'Credentials'} sent to ${email}`);
+        alert(`Club "${clubName}" approved successfully! Credentials sent to ${email}`);
       } else {
         setError(data.message || "Failed to approve club");
         alert("Failed to update club status in database");

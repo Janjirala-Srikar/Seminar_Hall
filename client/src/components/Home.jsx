@@ -70,7 +70,7 @@ function Home() {
 
     <div className="bg-white">
   
-      <div className="booking-container d-flex justify-content-center flex-column ">
+      <div className="booking-container d-flex justify-content-center flex-column bg-white">
             <h1 className="bc">Looking for a venue? 
             <br />Reserve a seminar hall now through our booking portal</h1>
             <p className="">Easy, quick, and hassle-free booking.</p>

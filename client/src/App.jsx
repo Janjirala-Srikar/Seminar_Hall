@@ -8,7 +8,7 @@ import DirectorDashboard from './components/Director/DirectorDashboard';
 import SigInComponent from './components/SignIn/SignInComponent';
 import ClubInfoCard from './components/Club Registration/ClubInfoCard';
 import ClubRegistrationLanding from './components/Club Registration/ClubRegistrationLanding';
-import Main from './components/Main/Main';
+import Main from './components/User Dashboard/Main';
 import BookingCalendar from './components/Calender/BookingCalender';
 import ClubRequests from './components/Auth/ClubRequests';
 

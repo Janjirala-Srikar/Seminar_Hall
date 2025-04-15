@@ -1,0 +1,187 @@
+/* ClubRequests.css */
+:root {
+    --primary: #82001A;
+    --primary-light: #B22334;
+    --dark-gray: #3B3434;
+    --medium-gray: #495057;
+    --light-gray: #869791;
+    --darker-gray: #1A1A1A;
+    --gray: #4F4F4F;
+    --light-medium-gray: #909090;
+    --very-light-gray: #D6D6D6;
+    --background-light: #F5F5F7;
+    --white: #FFFFFF;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+  }
+  
+  /* Main container styles */
+  .dashboard-container {
+    background-color: var(--background-light);
+  }
+  
+  .dashboard-title {
+    color: var(--primary);
+  }
+  
+  .section-title {
+    color: var(--dark-gray);
+  }
+  
+  /* Stat cards */
+  .stat-card {
+    cursor: pointer;
+    background-color: var(--white);
+    border-color: transparent;
+    transition: all 0.2s ease;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+  }
+  
+  .selected-card {
+    border: 3px solid var(--primary);
+  }
+  
+  .selected-card-success {
+    border: 3px solid var(--success);
+  }
+  
+  .selected-card-warning {
+    border: 3px solid var(--warning);
+  }
+  
+  .selected-card-danger {
+    border: 3px solid var(--danger);
+  }
+  
+  /* Stat icons */
+  .stat-icon {
+    border-radius: 50%;
+    padding: 15px;
+    margin-right: 15px;
+  }
+  
+  .all-icon {
+    background-color: rgba(178, 35, 52, 0.2);
+    color: var(--primary);
+  }
+  
+  .approved-icon {
+    background-color: rgba(40, 167, 69, 0.2);
+    color: var(--success);
+  }
+  
+  .waitlisted-icon {
+    background-color: rgba(255, 193, 7, 0.2);
+    color: var(--warning);
+  }
+  
+  .rejected-icon {
+    background-color: rgba(220, 53, 69, 0.2);
+    color: var(--danger);
+  }
+  
+  /* Button styles */
+  .back-button {
+    background-color: transparent;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+  }
+  
+  .back-button:hover {
+    background-color: var(--primary);
+    color: var(--white);
+  }
+  
+  /* Empty state alert */
+  .empty-alert {
+    background-color: rgba(178, 35, 52, 0.2);
+    color: var(--primary);
+  }
+  
+  /* Club cards */
+  .club-card {
+    border-left-width: 4px;
+    border-left-style: solid;
+  }
+  
+  .pending-card {
+    border-left-color: var(--very-light-gray);
+  }
+  
+  .approved-card {
+    border-left-color: var(--success);
+  }
+  
+  .waitlisted-card {
+    border-left-color: var(--warning);
+  }
+  
+  .rejected-card {
+    border-left-color: var(--danger);
+  }
+  
+  .card-title {
+    color: var(--dark-gray);
+  }
+  
+  .card-info {
+    color: var(--medium-gray);
+  }
+  
+  /* Status badges */
+  .status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: bold;
+  }
+  
+  .pending-badge {
+    background-color: var(--light-medium-gray);
+    color: var(--white);
+  }
+  
+  .approved-badge {
+    background-color: var(--success);
+    color: var(--white);
+  }
+  
+  .waitlisted-badge {
+    background-color: var(--warning);
+    color: var(--darker-gray);
+  }
+  
+  .rejected-badge {
+    background-color: var(--danger);
+    color: var(--white);
+  }
+  
+  /* Action buttons */
+  .action-btn {
+    border: none;
+  }
+  
+  .approve-btn {
+    background-color: var(--success);
+    color: var(--white);
+  }
+  
+  .waitlist-btn {
+    background-color: var(--warning);
+    color: var(--darker-gray);
+  }
+  
+  .reject-btn {
+    background-color: var(--danger);
+    color: var(--white);
+  }
+  
+  .disabled-btn {
+    background-color: var(--very-light-gray);
+    color: var(--medium-gray);
+  }
