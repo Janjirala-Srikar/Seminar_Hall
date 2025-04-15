@@ -206,7 +206,7 @@ function SignInComponent() {
                   onBlur={() => handleInputFocus('facultyId', false)}
                   required
                 />
-                <div className="focus-border"></div>
+               
               </div>
               <div className={`form-group ${inputFocus.facultyPassword ? 'focused' : ''}`}>
                 <label htmlFor="facultyPassword">Password</label>
@@ -220,7 +220,7 @@ function SignInComponent() {
                   onBlur={() => handleInputFocus('facultyPassword', false)}
                   required
                 />
-                <div className="focus-border"></div>
+          
               </div>
               <button 
                 type="submit" 
@@ -233,7 +233,7 @@ function SignInComponent() {
               <div className="form-footer">
                 <button 
                   type="button" 
-                  className="form-link"
+                  className="form-link1"
                   onClick={() => changePage('forgot')}
                 >
                   Forgot password?
@@ -241,7 +241,7 @@ function SignInComponent() {
                 <button 
                   type="button" 
                   className="club-link"
-                  onClick={() => changePage('club')}
+                  onClick={() => navigate('/clubreg')}
                 >
                   Are you a club?
                 </button>
@@ -261,7 +261,7 @@ function SignInComponent() {
                   onBlur={() => handleInputFocus('adminEmail', false)}
                   required
                 />
-                <div className="focus-border"></div>
+         
               </div>
               <div className={`form-group ${inputFocus.adminPassword ? 'focused' : ''}`}>
                 <label htmlFor="adminPassword">Password</label>
@@ -275,7 +275,7 @@ function SignInComponent() {
                   onBlur={() => handleInputFocus('adminPassword', false)}
                   required
                 />
-                <div className="focus-border"></div>
+           
               </div>
               <button 
                 type="submit" 
@@ -288,7 +288,7 @@ function SignInComponent() {
               <div className="form-footer">
                 <button 
                   type="button" 
-                  className="form-link"
+                  className="form-link1"
                   onClick={() => changePage('forgot')}
                 >
                   Forgot password?
@@ -296,7 +296,7 @@ function SignInComponent() {
                 <button 
                   type="button" 
                   className="club-link"
-                  onClick={() => changePage('club')}
+                  onClick={() => navigate('/clubreg')}
                 >
                   Are you a club?
                 </button>
@@ -308,79 +308,6 @@ function SignInComponent() {
     </div>
   );
 
-  // Render the club registration page
-  const renderClubPage = () => (
-    <div className={`login-wrapper ${animationState === 'enter' ? 'page-enter' : 'page-exit'}`}>
-      <div className="card club-card">
-        <div className="card-body">
-          <h2 className="card-title">Club Details</h2>
-          
-          {error && <div className="error-message">{error}</div>}
-          
-          <form className="login-form" onSubmit={handleClubRegistration}>
-            <div className={`form-group ${inputFocus.clubName ? 'focused' : ''}`}>
-              <label htmlFor="clubName">Club Name</label>
-              <input
-                type="text"
-                id="clubName"
-                placeholder="Enter club name"
-                value={formInputs.clubName}
-                onChange={(e) => handleInputChange('clubName', e.target.value)}
-                onFocus={() => handleInputFocus('clubName', true)}
-                onBlur={() => handleInputFocus('clubName', false)}
-                required
-              />
-              <div className="focus-border"></div>
-            </div>
-            <div className={`form-group ${inputFocus.clubEmail ? 'focused' : ''}`}>
-              <label htmlFor="clubEmail">Club Email</label>
-              <input
-                type="email"
-                id="clubEmail"
-                placeholder="Enter club email"
-                value={formInputs.clubEmail}
-                onChange={(e) => handleInputChange('clubEmail', e.target.value)}
-                onFocus={() => handleInputFocus('clubEmail', true)}
-                onBlur={() => handleInputFocus('clubEmail', false)}
-                required
-              />
-              <div className="focus-border"></div>
-            </div>
-            <div className={`form-group ${inputFocus.facultyCoordinator ? 'focused' : ''}`}>
-              <label htmlFor="facultyCoordinator">Faculty Coordinator ID</label>
-              <input
-                type="text"
-                id="facultyCoordinator"
-                placeholder="Enter faculty coordinator ID"
-                value={formInputs.facultyCoordinator}
-                onChange={(e) => handleInputChange('facultyCoordinator', e.target.value)}
-                onFocus={() => handleInputFocus('facultyCoordinator', true)}
-                onBlur={() => handleInputFocus('facultyCoordinator', false)}
-                required
-              />
-              <div className="focus-border"></div>
-            </div>
-            <button 
-              type="submit" 
-              className="btn-primary"
-              disabled={loading}
-            >
-              {loading ? 'Submitting...' : 'Submit'}
-            </button>
-            <div className="form-footer">
-              <button 
-                type="button" 
-                className="club-link back-link"
-                onClick={() => changePage('login')}
-              >
-                Back to Login
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
 
   // Render the forgot password page
   const renderForgotPasswordPage = () => (
@@ -407,7 +334,7 @@ function SignInComponent() {
                 onBlur={() => handleInputFocus('resetEmail', false)}
                 required
               />
-              <div className="focus-border"></div>
+     
             </div>
             <p className="reset-instructions">
               Enter your {activeTab === 'user' ? 'faculty ID or email' : 'email'} address and we'll send you a link to reset your password.
@@ -462,15 +389,7 @@ function SignInComponent() {
           font-style: italic;
         }
         
-        .form-link {
-          background: none;
-          border: none;
-          color: #4285f4;
-          padding: 0;
-          font-size: 14px;
-          cursor: pointer;
-          text-decoration: none;
-        }
+    
         
         .form-link:hover {
           text-decoration: underline;

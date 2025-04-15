@@ -1,0 +1,252 @@
+/* ClubRegistrationLanding.css */
+
+:root {
+  /* Color palette variables */
+  --primary: #82001A;
+  --primary-light: #B22334;  /* Lighter shade of the primary color */
+  --dark-gray: #3B3434;
+  --medium-gray: #495057;
+  --light-gray: #869791;
+  --darker-gray: #1A1A1A;
+  --gray: #4F4F4F;
+  --light-medium-gray: #909090;
+  --very-light-gray: #D6D6D6;
+  --background-light: #F5F5F7;
+  --white: #FFFFFF;
+}
+
+.club-registration-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  background-color: var(--background-light);
+  padding: 1rem;
+  position: relative;
+}
+
+/* Home navigation button */
+.home-button {
+  position: absolute;
+  top: 1.25rem;
+  left: 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background-color: var(--white);
+  color: var(--primary);
+  border-radius: 2rem;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.home-button:hover {
+  background-color: var(--primary-light);
+  color: var(--white);
+  /* transform: translateY(-0.125rem); */
+  box-shadow: 0 0.25rem 0.5rem rgba(130, 0, 26, 0.092);
+}
+
+.card {
+  border: none;
+  width: 100%;
+  max-width: 62.5rem;
+  margin: 2rem auto;
+  border-radius: 0.75rem !important;
+}
+
+.left-panel {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  min-height: 28.125rem;
+  position: relative;
+  border-radius: 0.75rem 0 0 0.75rem;
+}
+
+.club-icon-container {
+  position: relative;
+  width: 12.5rem;
+  height: 12.5rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  padding: 2.5rem;
+  box-shadow: 0 0.625rem 1.25rem rgba(0, 0, 0, 0.1);
+}
+
+.club-icon {
+  font-size: 5rem;
+  color: var(--white);
+}
+
+.club-icon-circle {
+  position: absolute;
+  width: 3.75rem;
+  height: 3.75rem;
+  border-radius: 50%;
+  background-color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(3.125rem, 1.875rem);
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.2);
+}
+
+.member-icon {
+  font-size: 1.875rem;
+  color: var(--primary-light);
+}
+
+.heading-text {
+  color: var(--dark-gray);
+  font-size: 1.75rem;
+}
+
+.step-circle {
+  width: 1.75rem;
+  height: 1.75rem;
+  min-width: 1.75rem;
+  background-color: var(--primary-light);
+  color: var(--white);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.875rem;
+}
+
+.alert-info-box {
+  background-color: var(--background-light);
+  border-left: 0.25rem solid var(--primary-light);
+  padding: 1rem;
+  border-radius: 0.25rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+  margin-top: 1rem;
+}
+
+.info-icon {
+  color: var(--primary-light);
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.register-btn {
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+  /* box-shadow: 0 0.25rem 0.9375rem rgba(130, 0, 26, 0.3); */
+  transition: all 0.3s ease;
+  border: none;
+  font-size: 1rem;
+}
+
+.register-btn:hover {
+  /* background: var(--primary); */
+  transform: translateY(-0.125rem);
+  box-shadow: 0 0.375rem 1.25rem rgba(130, 0, 26, 0.212);
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+  .club-registration-container {
+    padding: 1.5rem 1rem;
+  }
+  
+  .heading-text {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .home-button {
+    top: 0.75rem;
+    left: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+  
+  .home-button span {
+    display: none;
+  }
+  
+  .club-icon-container {
+    width: 9.375rem;
+    height: 9.375rem;
+    padding: 1.875rem;
+  }
+  
+  .club-icon {
+    font-size: 3.75rem;
+  }
+  
+  .club-icon-circle {
+    width: 3.125rem;
+    height: 3.125rem;
+    transform: translate(2.5rem, 1.25rem);
+  }
+  
+  .member-icon {
+    font-size: 1.5rem;
+  }
+  
+  .left-panel {
+    min-height: 21.875rem;
+    border-radius: 0.75rem 0.75rem 0 0;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .card {
+    margin: 1rem auto;
+  }
+  
+  .club-registration-container {
+    padding: 1rem 0.5rem;
+  }
+  
+  .left-panel {
+    min-height: 18.75rem;
+    padding: 1.5rem !important;
+  }
+  
+  .club-icon-container {
+    width: 7.5rem;
+    height: 7.5rem;
+    padding: 1.5rem;
+  }
+  
+  .club-icon {
+    font-size: 3rem;
+  }
+  
+  .club-icon-circle {
+    width: 2.5rem;
+    height: 2.5rem;
+    transform: translate(2rem, 1rem);
+  }
+  
+  .member-icon {
+    font-size: 1.25rem;
+  }
+  
+  .step-circle {
+    width: 1.5rem;
+    height: 1.5rem;
+    min-width: 1.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .heading-text {
+    font-size: 1.375rem;
+  }
+}

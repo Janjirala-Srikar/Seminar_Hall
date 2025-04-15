@@ -9,7 +9,7 @@ const Sidebar = ({ collapsed, toggleSidebar, activeSection, setActiveSection }) 
     { id: 'bookingRequests', label: 'Booking Requests', icon: FaCalendarCheck },
     { id: 'adminClubs', label: 'Admins & Clubs', icon: FaUsers },
     { id: 'seminarHalls', label: 'Seminar Halls', icon: FaDoorOpen },
-    { id: 'settings', label: 'Settings', icon: FaCog }
+    { id: 'clubreq', label: 'Club Requests', icon: FaCog }
   ];
   
   return (

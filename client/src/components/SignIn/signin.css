@@ -126,7 +126,7 @@
     background-color: #82001A;
     border-radius: 20px;
     top: 5px;
-    left: 5px;
+    left: 10px;
     z-index: 1;
     transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
   }
@@ -151,7 +151,7 @@
   }
   
   .card:hover {
-    transform: translateY(-5px);
+    /* transform: translateY(-5px); */
     box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
   }
   
@@ -195,10 +195,7 @@
     transition: transform 0.3s ease;
   }
   
-  .form-group.focused {
-    transform: translateY(-3px);
-  }
-  
+
   .form-group label {
     display: block;
     color: #82001A;
@@ -207,10 +204,7 @@
     transition: transform 0.3s ease, color 0.3s ease;
   }
   
-  .form-group.focused label {
-    color: #5c0012;
-    transform: translateY(-3px);
-  }
+
   
   .form-group input {
     width: 100%;
@@ -264,13 +258,13 @@
     font-weight: 500;
     cursor: pointer;
     width: 100%;
-    margin-top: 10px;
+    /* margin-top: 10px; */
     transition: background-color 0.3s ease, transform 0.2s ease;
   }
   
   .btn-primary:hover {
     background-color: #5c0012;
-    transform: translateY(-3px);
+    /* transform: translateY(-3px); */
   }
   
   .btn-primary:active {
@@ -279,7 +273,7 @@
   
   /* Form Footer */
   .form-footer {
-    margin-top: 20px;
+    /* margin-top: 20px; */
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -289,17 +283,21 @@
     animation-fill-mode: both;
   }
   
-  .form-link {
+  .form-link1 {
     color: #82001A;
+    background: none;
+    border: none;
+    padding: 0;
+    margin-top: 1rem;
+    font-size: 14px;
+    cursor: pointer;
     text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s ease, transform 0.2s ease;
-    display: inline-block;
   }
   
-  .form-link:hover {
+  .form-link1:hover {
     color: #5c0012;
-    transform: translateY(-2px);
+    text-decoration: underline;
+    /* transform: translateY(-2px); */
   }
   
   .club-link {
@@ -329,11 +327,12 @@
   
   .club-link:hover {
     color: #5c0012;
-    transform: translateY(-2px);
+    text-decoration: underline;
+    /* transform: translateY(-2px); */
   }
   
   .club-link:hover::after {
-    transform: scaleX(1);
+    /* transform: scaleX(1); */
     transform-origin: left;
   }
   

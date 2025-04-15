@@ -108,12 +108,12 @@
     padding: 2rem;
   }
   
-  .header-container {
+  /* .header-container {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 1.5rem;
-  }
+  } */
   
   .section-header h5 {
     margin-bottom: 0.5rem;
@@ -258,10 +258,10 @@
       padding: 1rem;
     }
     
-    .header-container {
+    /* .header-container {
       flex-direction: column;
       gap: 1rem;
-    }
+    } */
     
     .custom-select {
       width: 100%;

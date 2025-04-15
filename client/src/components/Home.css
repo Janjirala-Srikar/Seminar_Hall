@@ -116,6 +116,7 @@
 
 .landing p {
     font-size: 16px;
+    font-weight: 500;
     color: #666;
     margin-bottom: 15px;
     line-height: 1.6;
@@ -141,7 +142,7 @@
     border-radius: 10px;
     max-width: 800px;
     margin: auto;
-    height: 84vh;
+    height: 75vh;
 }
 
 .bc {
@@ -165,12 +166,13 @@
 .book-btn {
     background-color: #82001A;
     color: #FFFFFF;
-    padding: 12px 25px;
+    padding: 10px 30px;
     border: none;
-    border-radius: 25px;
+    border-radius: 30px;
     font-size: clamp(1rem, 2vw, 1.3rem);
     cursor: pointer;
     transition: transform 0.3s ease;
+    margin-right: 10px;
 }
 
 .book-btn:hover {
@@ -206,6 +208,10 @@
         margin-left: 15px;
         margin-right: 15px;
         padding: 20px 15px;
+    }
+    .landing-image{
+        width: 95%;
+        margin-bottom: 1rem;
     }
 }
 

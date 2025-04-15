@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Sidebar from '../Sidebar/Sidebar';
 import TopNavigation from '../TopNavigation';
 import WelcomeSection from '../Welcome/WelcomeSection';
+import ClubRequests from '../Auth/ClubRequests';
 import AdminClub from '../Admin_Club/AdminClub';
 import SeminarHall from '../Seminar_Hall/SeminarHall';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -23,7 +24,9 @@ const DirectorDashboard = () => {
       case 'seminarHalls':
         return <SeminarHall />;
       case 'bookingRequests':
-        return <RequestDashboard/>
+        return <RequestDashboard/>;
+      case 'clubreq':
+        return <ClubRequests />;
       case 'dashboard':
       default:
         return <WelcomeSection />;
