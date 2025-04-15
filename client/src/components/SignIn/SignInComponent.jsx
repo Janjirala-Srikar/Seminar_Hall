@@ -2,29 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './signin.css';
 
-// Import Firebase modules
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyDc7SGt6vMAEClxHsPXOe77n5UMHRUvYBo",
-  authDomain: "seminarhall-c1280.firebaseapp.com",
-  projectId: "seminarhall-c1280",
-  storageBucket: "seminarhall-c1280.firebasestorage.app",
-  messagingSenderId: "1019317812425",
-  appId: "1:1019317812425:web:ab4314fec649173e54a118",
-  measurementId: "G-L59FVKDYT0"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+// Import Firebase modules from our config
+import { auth } from '../firebase/config'; // Adjust the path as needed
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 
 function SignInComponent() {
-  // Get auth instance
-  const auth = getAuth(app);
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('user');

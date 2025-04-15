@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
+const bookingRoutes = require('./routes/bookingRoutes');
 
 
 // Load environment variables
@@ -23,6 +24,11 @@ mongoose.connect(process.env.MONGODB_URI)
 // In server.js, replace the direct routes with:
 const clubRoutes = require('./routes/clubRoutes');
 app.use('/api/clubs', clubRoutes);
+
+
+
+app.use('/api/bookings', bookingRoutes);
+
 
 // Start server
 const PORT = process.env.PORT || 5000;

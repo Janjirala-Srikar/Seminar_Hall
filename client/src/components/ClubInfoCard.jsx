@@ -12,7 +12,7 @@ const ClubInfoCard = () => {
     departmentAffiliation: "",
     clubCategory: "",
     establishedDate: "",
-    status: false // This will remain in the object but not be shown in UI
+    status: false 
   });
 
   const [activeSection, setActiveSection] = useState(0);
@@ -152,9 +152,9 @@ const ClubInfoCard = () => {
           description: formData.description,
           facultyAdvisorName: formData.facultyAdvisorName,
           contactEmail: formData.contactEmail,
-          contactPhone: formData.contactPhone, // make sure this is in your formData
+          contactPhone: formData.contactPhone, 
           departmentAffiliation: formData.departmentAffiliation,
-          clubCategory: formData.clubCategory, // also ensure it's part of your formData
+          clubCategory: formData.clubCategory, 
           establishedDate: formData.establishedDate,
         });
   

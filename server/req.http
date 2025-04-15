@@ -11,3 +11,8 @@ Content-Type: application/json
   "clubCategory": "Technology",
   "establishedDate": "2025-04-01"
 }
+
+
+### Get all clubs
+GET http://localhost:5000/api/clubs/clubs-req
+

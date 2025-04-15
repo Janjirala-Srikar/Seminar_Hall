@@ -30,12 +30,46 @@ router.post('/', async (req, res) => {
 });
 
 // Get all clubs
-router.get('/', async (req, res) => {
+router.get('/clubs-req', async (req, res) => {
   try {
     const clubs = await Club.find({});
     res.status(200).json({ success: true, data: clubs });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
+  }
+});
+
+// Update club status
+router.put('/approve/:id', async (req, res) => {
+  try {
+    const clubId = req.params.id;
+    
+    // Find the club and update its status to true
+    const updatedClub = await Club.findByIdAndUpdate(
+      clubId,
+      { status: true },
+      { new: true } // Return the updated document
+    );
+    
+    if (!updatedClub) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Club not found' 
+      });
+    }
+    
+    res.status(200).json({ 
+      success: true, 
+      message: 'Club approved successfully',
+      data: updatedClub 
+    });
+  } catch (error) {
+    console.error('Error approving club:', error);
+    res.status(400).json({ 
+      success: false, 
+      message: 'Failed to approve club',
+      error: error.message 
+    });
   }
 });
 
