@@ -19,13 +19,13 @@ const BookingSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  description: {
+   hallname: {
     type: String,
     trim: true
   },
   isConfirmed: {
     type: Boolean,
-    default: true
+    default: false
   },
   createdAt: {
     type: Date,

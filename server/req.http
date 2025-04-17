@@ -16,3 +16,34 @@ Content-Type: application/json
 ### Get all clubs
 GET http://localhost:5000/api/clubs/clubs-req
 
+###
+GET http://localhost:5000/api/bookings/
+Content-Type: application/json
+
+###
+POST http://localhost:5000/api/bookings/post
+Content-Type: application/json
+
+{
+  "title": "Coding Bootcamp",
+  "start": "2025-04-21T09:00:00.000Z",
+  "end": "2025-04-21T13:00:00.000Z",
+  "bookedBy": "Jane Smith",
+  "hallname": "APJ Abdul Kalam",
+  "isConfirmed": false
+}
+
+###
+PUT http://localhost:5000/api/bookings/6801543db31ed4f228ee0b41
+Content-Type: application/json
+
+{
+  "_id": "6801543db31ed4f228ee0b41",
+  "title": "Technical Club Meeting",
+  "start": "2025-04-19T10:00:00.000+00:00",
+  "end": "2025-04-19T12:00:00.000+00:00",
+  "bookedBy": "Srikar Janjirala",
+  "isConfirmed": false,
+  "createdAt": "2025-04-17T19:19:25.773+00:00",
+  "__v": 0
+}
