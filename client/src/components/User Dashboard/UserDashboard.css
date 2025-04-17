@@ -533,3 +533,277 @@ body {
   color: var(--green);
 }
 
+/* Profile dropdown styles */
+.hbs_profile-dropdown {
+  position: relative;
+}
+
+.hbs_profile-trigger {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hbs_profile-image {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  border: 2px solid var(--primary-light);
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.hbs_profile-image:hover {
+  border-color: var(--primary);
+  transform: scale(1.05);
+}
+
+.hbs_profile-image-placeholder {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-full);
+  background-color: var(--primary-bg);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  border: 2px solid var(--primary-light);
+  transition: all var(--transition-fast);
+}
+
+.hbs_profile-image-placeholder:hover {
+  background-color: var(--primary-bg);
+  border-color: var(--primary);
+  transform: scale(1.05);
+}
+
+/* Dropdown menu */
+.hbs_dropdown-menu {
+  position: absolute;
+  top: 56px;
+  right: 0;
+  width: 280px;
+  background-color: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--very-light-gray);
+  z-index: 1040;
+  overflow: hidden;
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hbs_dropdown-header {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  background-color: var(--white);
+}
+
+.hbs_dropdown-profile-image {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  box-shadow: var(--shadow-sm);
+  border: 2px solid var(--primary-light);
+}
+
+.hbs_dropdown-profile-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background-color: var(--primary-bg);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  border: 2px solid var(--primary-light);
+}
+
+.hbs_profile-info {
+  margin-left: 12px;
+}
+
+.hbs_profile-name {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--dark-gray);
+  margin: 0 0 4px 0;
+}
+
+.hbs_profile-email {
+  font-size: 0.85rem;
+  color: var(--light-medium-gray);
+  margin: 0;
+  word-break: break-all;
+}
+
+.hbs_dropdown-divider {
+  height: 1px;
+  background-color: var(--very-light-gray);
+  margin: 0;
+}
+
+.hbs_dropdown-list {
+  list-style: none;
+  padding: 8px 0;
+  margin: 0;
+}
+
+.hbs_dropdown-list li {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  color: var(--medium-gray);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.hbs_dropdown-list li:hover {
+  background-color: var(--primary-bg);
+  color: var(--primary);
+}
+
+.hbs_dropdown-icon {
+  margin-right: 12px;
+  font-size: 1rem;
+}
+/* Add error styles and modifications */
+.hbs_error-message {
+  background-color: var(--red-light);
+  color: var(--red);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+}
+
+.hbs_error-icon {
+  margin-right: 10px;
+  font-size: 1.1rem;
+}
+
+/* Fix content section to ensure proper padding */
+.hbs_content-section {
+  max-width: 1200px;
+  padding: 28px;
+  margin: 0 auto;
+}
+
+/* Add loading state styles */
+.hbs_loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.hbs_spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--very-light-gray);
+  border-radius: 50%;
+  border-top-color: var(--primary);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Improve dropdown menu positioning to avoid UI issues */
+.hbs_dropdown-menu {
+  position: absolute;
+  top: 56px;
+  right: 0;
+  width: 280px;
+  background-color: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--very-light-gray);
+  z-index: 1040;
+  overflow: hidden;
+  animation: dropdownFadeIn 0.2s ease-out;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+/* Add more responsive styling for smaller screens */
+@media (max-width: 768px) {
+  .hbs_navbar-container {
+    padding: 0 16px;
+  }
+  
+  .hbs_brand h3 {
+    font-size: 1.1rem;
+  }
+  
+  .hbs_dropdown-menu {
+    width: 250px;
+    right: -16px;
+  }
+  
+  .hbs_content-section {
+    padding: 20px 16px;
+  }
+}
+
+/* Add offline handling visual indicator */
+.hbs_connection-status {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  font-weight: 500;
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  transition: all var(--transition-normal);
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.hbs_connection-status.hbs_visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hbs_status-online {
+  background-color: var(--green-light);
+  color: var(--green);
+}
+
+.hbs_status-offline {
+  background-color: var(--red-light);
+  color: var(--red);
+}
+
+.hbs_connection-icon {
+  margin-right: 6px;
+}
