@@ -72,6 +72,24 @@ function SignInComponent() {
     }));
   };
 
+  // Save user data to session storage
+  const saveUserToSessionStorage = (user, userType) => {
+    // Extract the needed information from the user object
+    const userData = {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName || '',
+      userType: userType, // 'faculty' or 'admin'
+      photoURL: user.photoURL || '',
+      emailVerified: user.emailVerified,
+      lastLoginTime: new Date().toISOString()
+    };
+    
+    // Save to session storage
+    sessionStorage.setItem('currentUser', JSON.stringify(userData));
+    console.log('User data saved to session storage:', userData);
+  };
+
   // Handle user login for Faculty (User)
   const handleUserLogin = async (e) => {
     e.preventDefault();
@@ -84,7 +102,12 @@ function SignInComponent() {
         ? formInputs.facultyId 
         : `${formInputs.facultyId}@vnrvjiet.edu.in`; // Example domain
         
-      await signInWithEmailAndPassword(auth, userEmail, formInputs.facultyPassword);
+      const userCredential = await signInWithEmailAndPassword(auth, userEmail, formInputs.facultyPassword);
+      const user = userCredential.user;
+      
+      // Save user data to session storage
+      saveUserToSessionStorage(user, 'faculty');
+      
       console.log('User logged in successfully');
       // Navigate to Home page on successful login
       navigate('/Home');
@@ -103,7 +126,12 @@ function SignInComponent() {
     setError('');
     
     try {
-      await signInWithEmailAndPassword(auth, formInputs.adminEmail, formInputs.adminPassword);
+      const userCredential = await signInWithEmailAndPassword(auth, formInputs.adminEmail, formInputs.adminPassword);
+      const user = userCredential.user;
+      
+      // Save user data to session storage
+      saveUserToSessionStorage(user, 'admin');
+      
       console.log('Admin logged in successfully');
       // Navigate to Home page on successful login
       navigate('/Home');
@@ -124,7 +152,22 @@ function SignInComponent() {
     try {
       // Here you would typically call an API to register the club
       // For this example, we'll just create a Firebase user with the club email
-      await createUserWithEmailAndPassword(auth, formInputs.clubEmail, 'temporary-password');
+      const userCredential = await createUserWithEmailAndPassword(auth, formInputs.clubEmail, 'temporary-password');
+      const user = userCredential.user;
+      
+      // Save additional club data to session storage
+      const clubData = {
+        uid: user.uid,
+        email: user.email,
+        clubName: formInputs.clubName,
+        facultyCoordinator: formInputs.facultyCoordinator,
+        userType: 'club',
+        createdAt: new Date().toISOString()
+      };
+      
+      // Save to session storage
+      sessionStorage.setItem('currentUser', JSON.stringify(clubData));
+      
       console.log('Club registered successfully');
       // Navigate to Home or a success page
       navigate('/Home');
@@ -160,6 +203,25 @@ function SignInComponent() {
       setLoading(false);
     }
   };
+
+  // Check for existing user in session storage on component mount
+  useEffect(() => {
+    const storedUser = sessionStorage.getItem('currentUser');
+    if (storedUser) {
+      const userData = JSON.parse(storedUser);
+      const now = new Date();
+      const lastLogin = new Date(userData.lastLoginTime);
+      const hoursSinceLogin = (now - lastLogin) / (1000 * 60 * 60);
+      
+      // If the user logged in less than 24 hours ago, auto-redirect to home
+      if (hoursSinceLogin < 24) {
+        navigate('/Home');
+      } else {
+        // If session is expired, clear it
+        sessionStorage.removeItem('currentUser');
+      }
+    }
+  }, [navigate]);
 
   // Render the login page with tabs
   const renderLoginPage = () => (
@@ -206,7 +268,6 @@ function SignInComponent() {
                   onBlur={() => handleInputFocus('facultyId', false)}
                   required
                 />
-               
               </div>
               <div className={`form-group ${inputFocus.facultyPassword ? 'focused' : ''}`}>
                 <label htmlFor="facultyPassword">Password</label>
@@ -220,7 +281,6 @@ function SignInComponent() {
                   onBlur={() => handleInputFocus('facultyPassword', false)}
                   required
                 />
-          
               </div>
               <button 
                 type="submit" 
@@ -261,7 +321,6 @@ function SignInComponent() {
                   onBlur={() => handleInputFocus('adminEmail', false)}
                   required
                 />
-         
               </div>
               <div className={`form-group ${inputFocus.adminPassword ? 'focused' : ''}`}>
                 <label htmlFor="adminPassword">Password</label>
@@ -275,7 +334,6 @@ function SignInComponent() {
                   onBlur={() => handleInputFocus('adminPassword', false)}
                   required
                 />
-           
               </div>
               <button 
                 type="submit" 
@@ -308,6 +366,77 @@ function SignInComponent() {
     </div>
   );
 
+  // Render the club registration page (referenced but missing in the provided code)
+  const renderClubPage = () => (
+    <div className={`login-wrapper ${animationState === 'enter' ? 'page-enter' : 'page-exit'}`}>
+      <div className="card login-card">
+        <div className="card-body">
+          <h2 className="card-title">Club Registration</h2>
+          
+          {error && <div className="error-message">{error}</div>}
+          
+          <form className="login-form" onSubmit={handleClubRegistration}>
+            <div className={`form-group ${inputFocus.clubName ? 'focused' : ''}`}>
+              <label htmlFor="clubName">Club Name</label>
+              <input
+                type="text"
+                id="clubName"
+                placeholder="Enter club name"
+                value={formInputs.clubName}
+                onChange={(e) => handleInputChange('clubName', e.target.value)}
+                onFocus={() => handleInputFocus('clubName', true)}
+                onBlur={() => handleInputFocus('clubName', false)}
+                required
+              />
+            </div>
+            <div className={`form-group ${inputFocus.clubEmail ? 'focused' : ''}`}>
+              <label htmlFor="clubEmail">Club Email</label>
+              <input
+                type="email"
+                id="clubEmail"
+                placeholder="Enter club email"
+                value={formInputs.clubEmail}
+                onChange={(e) => handleInputChange('clubEmail', e.target.value)}
+                onFocus={() => handleInputFocus('clubEmail', true)}
+                onBlur={() => handleInputFocus('clubEmail', false)}
+                required
+              />
+            </div>
+            <div className={`form-group ${inputFocus.facultyCoordinator ? 'focused' : ''}`}>
+              <label htmlFor="facultyCoordinator">Faculty Coordinator</label>
+              <input
+                type="text"
+                id="facultyCoordinator"
+                placeholder="Enter faculty coordinator name"
+                value={formInputs.facultyCoordinator}
+                onChange={(e) => handleInputChange('facultyCoordinator', e.target.value)}
+                onFocus={() => handleInputFocus('facultyCoordinator', true)}
+                onBlur={() => handleInputFocus('facultyCoordinator', false)}
+                required
+              />
+            </div>
+            <button 
+              type="submit" 
+              className="btn-primary"
+              disabled={loading}
+            >
+              {loading ? 'Registering...' : 'Register Club'}
+            </button>
+            
+            <div className="form-footer">
+              <button 
+                type="button" 
+                className="club-link back-link"
+                onClick={() => changePage('login')}
+              >
+                Back to Login
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
 
   // Render the forgot password page
   const renderForgotPasswordPage = () => (
@@ -334,7 +463,6 @@ function SignInComponent() {
                 onBlur={() => handleInputFocus('resetEmail', false)}
                 required
               />
-     
             </div>
             <p className="reset-instructions">
               Enter your {activeTab === 'user' ? 'faculty ID or email' : 'email'} address and we'll send you a link to reset your password.
@@ -387,12 +515,6 @@ function SignInComponent() {
           color: #666;
           margin-bottom: 20px;
           font-style: italic;
-        }
-        
-    
-        
-        .form-link:hover {
-          text-decoration: underline;
         }
       `}</style>
     </div>
