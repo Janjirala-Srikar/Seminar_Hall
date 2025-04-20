@@ -6,6 +6,10 @@ const BookingSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  description: {
+    type: String,
+    trim: true
+  },
   start: {
     type: Date,
     required: true
@@ -19,7 +23,7 @@ const BookingSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-   hallname: {
+  hallname: {
     type: String,
     trim: true
   },
@@ -33,11 +37,9 @@ const BookingSchema = new mongoose.Schema({
   }
 });
 
-
 BookingSchema.statics.checkAvailability = async function(start, end, bookingId = null) {
   const query = {
     $or: [
-      
       { start: { $lte: start }, end: { $gt: start } },
       { start: { $lt: end }, end: { $gte: end } },
       { start: { $gte: start }, end: { $lte: end } }

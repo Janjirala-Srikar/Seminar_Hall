@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
-import { BsCalendar3, BsClock, BsCheckCircle, BsPerson, BsCardText } from "react-icons/bs";
+import { BsCalendar3, BsClock, BsCheckCircle, BsPerson, BsCardText, BsBuilding, BsFilter } from "react-icons/bs";
 import axios from "axios";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -10,17 +10,27 @@ import './Calender.css';
 const localizer = momentLocalizer(moment);
 const API_URL = "http://localhost:5000/api/bookings";
 
+// Available halls for booking
+const AVAILABLE_HALLS = [
+  "B-block Seminar Hall",
+  "KS Audi",
+  "APJ Abdul Kalam Hall"
+];
+
 const BookingCalendar = () => {
   const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [view, setView] = useState("month");
   const [date, setDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedHall, setSelectedHall] = useState("All Halls");
   const [formData, setFormData] = useState({
     title: "New Booking",
     bookedBy: "",
-    description: ""
+    description: "",
+    hall: "" // No default hall, user must select one
   });
 
   // Fetch all bookings from the backend
@@ -37,6 +47,7 @@ const BookingCalendar = () => {
         end: new Date(booking.end),
         bookedBy: booking.bookedBy,
         description: booking.description,
+        hall: booking.hall,
         isConfirmed: booking.isConfirmed
       }));
       
@@ -49,6 +60,16 @@ const BookingCalendar = () => {
       setLoading(false);
     }
   }, []);
+
+  // Filter events based on selected hall
+  useEffect(() => {
+    if (selectedHall === "All Halls") {
+      setFilteredEvents(events);
+    } else {
+      const filtered = events.filter(event => event.hall === selectedHall);
+      setFilteredEvents(filtered);
+    }
+  }, [selectedHall, events]);
 
   useEffect(() => {
     fetchBookings();
@@ -63,6 +84,10 @@ const BookingCalendar = () => {
     setView("day");
   }, []);
 
+  const handleHallChange = (e) => {
+    setSelectedHall(e.target.value);
+  };
+
   const handleSlotSelection = (slotInfo) => {
     const startTime = moment(slotInfo.start);
     setView("day");
@@ -75,22 +100,24 @@ const BookingCalendar = () => {
       end: roundedEnd.toDate(),
       title: "Selected Slot",
       isSelected: true,
-      isTemporary: true
+      isTemporary: true,
+      hall: selectedHall === "All Halls" ? "" : selectedHall
     };
 
-    const filteredEvents = events.filter(event => !event.isTemporary);
-    setEvents([...filteredEvents, newSelection]);
+    const filteredEvts = events.filter(event => !event.isTemporary);
+    setEvents([...filteredEvts, newSelection]);
     
     setSelectedSlot({
       start: roundedStart.toDate(),
       end: roundedEnd.toDate()
     });
 
-    // Reset form data for new booking
+    // Reset form data for new booking with currently selected hall
     setFormData({
       title: "New Booking",
       bookedBy: "",
-      description: ""
+      description: "",
+      hall: selectedHall === "All Halls" ? "" : selectedHall
     });
   };
 
@@ -100,6 +127,12 @@ const BookingCalendar = () => {
   };
 
   const handleConfirmBooking = async () => {
+    // Add validation to ensure a hall is selected
+    if (!formData.hall) {
+      alert("Please select a hall before confirming booking");
+      return;
+    }
+
     if (selectedSlot) {
       try {
         // Prepare booking data for backend
@@ -109,11 +142,12 @@ const BookingCalendar = () => {
           end: selectedSlot.end,
           bookedBy: formData.bookedBy || "Anonymous",
           description: formData.description || "",
+          hall: formData.hall,
           isConfirmed: true
         };
 
         // Send booking to backend
-        const response = await axios.post(API_URL, bookingData);
+        const response = await axios.post('http://localhost:5000/api/bookings/post', bookingData);
         
         // Update local state with the confirmed booking from backend
         const newEvent = {
@@ -123,11 +157,12 @@ const BookingCalendar = () => {
           end: new Date(response.data.end),
           bookedBy: response.data.bookedBy,
           description: response.data.description,
+          hall: response.data.hall,
           isConfirmed: response.data.isConfirmed
         };
 
-        const filteredEvents = events.filter(event => !event.isTemporary);
-        setEvents([...filteredEvents, newEvent]);
+        const filteredEvts = events.filter(event => !event.isTemporary);
+        setEvents([...filteredEvts, newEvent]);
         
         // Reset selected slot
         setSelectedSlot(null);
@@ -190,6 +225,30 @@ const BookingCalendar = () => {
               <h2 className="mb-0">Seminar Hall Booking Calendar</h2>
             </div>
             <div className="card-body">
+              {/* Hall Filter Dropdown */}
+              <div className="row mb-3">
+                <div className="col-md-4">
+                  <div className="input-group">
+                    <span className="input-group-text bg-primary text-white">
+                      <BsFilter size={18} />
+                    </span>
+                    <select 
+                      className="form-select"
+                      value={selectedHall}
+                      onChange={handleHallChange}
+                      aria-label="Filter by hall"
+                    >
+                      <option value="All Halls">All Halls</option>
+                      {AVAILABLE_HALLS.map((hall, index) => (
+                        <option key={index} value={hall}>
+                          {hall}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
               {loading ? (
                 <div className="text-center my-5">
                   <div className="spinner-border text-primary" role="status">
@@ -202,7 +261,7 @@ const BookingCalendar = () => {
               ) : (
                 <Calendar
                   localizer={localizer}
-                  events={events}
+                  events={filteredEvents}
                   startAccessor="start"
                   endAccessor="end"
                   style={{ height: 500 }}
@@ -248,6 +307,28 @@ const BookingCalendar = () => {
                           onChange={handleInputChange}
                           required
                         />
+                      </div>
+                      
+                      <div className="mb-3">
+                        <label htmlFor="hall" className="form-label">
+                          <BsBuilding className="me-2" />
+                          Select Hall
+                        </label>
+                        <select
+                          className="form-select"
+                          id="hall"
+                          name="hall"
+                          value={formData.hall}
+                          onChange={handleInputChange}
+                          required
+                        >
+                          <option value="" disabled>-- Select a Hall --</option>
+                          {AVAILABLE_HALLS.map((hall, index) => (
+                            <option key={index} value={hall}>
+                              {hall}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                       
                       <div className="mb-3">

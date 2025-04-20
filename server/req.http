@@ -25,13 +25,15 @@ POST http://localhost:5000/api/bookings/post
 Content-Type: application/json
 
 {
-  "title": "Coding Bootcamp",
-  "start": "2025-04-21T09:00:00.000Z",
-  "end": "2025-04-21T13:00:00.000Z",
-  "bookedBy": "Jane Smith",
-  "hallname": "APJ Abdul Kalam",
+  "title": "Guest Lecture",
+  "description": "AI & ML talk by Dr. Sarah Kumar from MIT.",
+  "start": "2025-04-25T14:00:00.000Z",
+  "end": "2025-04-25T16:30:00.000Z",
+  "bookedBy": "Srikar Janjirala",
+  "hallname": "APJ Abdul Kalam Hall",
   "isConfirmed": false
 }
+
 
 ###
 PUT http://localhost:5000/api/bookings/6801543db31ed4f228ee0b41
