@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { FaBars } from "react-icons/fa";
+import { FaBars, FaTimes } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import "./Header.css";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [scrolled, setScrolled] = useState(false);
   
   // Navigation items with their routes
   const navItems = [
@@ -28,6 +29,20 @@ const Header = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Handle scroll for background transparency
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // Determine if we're in mobile view
   const isMobile = windowWidth <= 990;
 
@@ -35,8 +50,8 @@ const Header = () => {
   useEffect(() => {
     if (isOpen) {
       const closeMenu = (e) => {
-        if (!e.target.closest('.header-container') || 
-            e.target.closest('.nav-link')) {
+        if (!e.target.closest('.mobile-nav-dropdown') && 
+            !e.target.closest('.hamburger-icon')) {
           setIsOpen(false);
         }
       };
@@ -47,7 +62,7 @@ const Header = () => {
   }, [isOpen]);
 
   return (
-    <div className={`header-container ${isMobile ? 'mobile' : ''}`}>
+    <div className={`header-container ${isMobile ? 'mobile' : ''} ${scrolled ? 'scrolled' : ''}`}>
       {/* Logo */}
       <div className="logo-container">
         <Link to="/">
@@ -74,34 +89,38 @@ const Header = () => {
         </nav>
       )}
       
-      {/* Mobile Navigation Dropdown */}
+      {/* Mobile Navigation */}
       {isMobile && (
-        <>
+        <div className="mobile-nav-container">
           <div 
             className="hamburger-icon"
             onClick={(e) => {
               e.stopPropagation();
               setIsOpen(!isOpen);
             }}
+            aria-label="Toggle menu"
           >
-            <FaBars />
+            {isOpen ? <FaTimes /> : <FaBars />}
           </div>
           
-          {isOpen && (
-            <div className="mobile-nav-dropdown">
-              {navItems.map((item, index) => (
-                <Link
-                  key={index}
-                  to={item.path}
-                  className="mobile-nav-link"
-                  onClick={() => setIsOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </div>
-          )}
-        </>
+          <div className={`mobile-nav-dropdown ${isOpen ? 'open' : ''}`}>
+            {navItems.map((item, index) => (
+              <Link
+                key={index}
+                to={item.path}
+                className="mobile-nav-link"
+                onClick={() => setIsOpen(false)}
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Backdrop for mobile menu */}
+      {isOpen && isMobile && (
+        <div className="mobile-menu-backdrop" onClick={() => setIsOpen(false)} />
       )}
     </div>
   );

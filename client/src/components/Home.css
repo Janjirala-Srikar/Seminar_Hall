@@ -4,6 +4,11 @@
     box-sizing: border-box;
 }
 
+/* Add padding-top to account for fixed navbar */
+.bg-white {
+    padding-top: 60px; /* Adjusted for navbar height */
+}
+
 /* Ensure the slider adapts well */
 .slider-wrapper {
     width: 100%;
@@ -52,11 +57,17 @@
     .slider-image {
         height: 350px;
     }
+    .bg-white {
+        padding-top: 80px;
+    }
 }
 
 @media (max-width: 768px) {
     .slider-image {
         height: 250px;
+    }
+    .bg-white {
+        padding-top: 70px;
     }
 }
 
@@ -136,13 +147,18 @@
     transition: transform 0.3s ease;
 }
 
-/* Booking container adjustments with responsive font sizes */
+/* Improved booking container */
 .booking-container {
     text-align: center;
+    align-items: center;
     border-radius: 10px;
     max-width: 800px;
-    margin: auto;
-    height: 75vh;
+    margin: 0 auto;
+    padding-top: 40px; /* Additional padding to account for navbar */
+    min-height: 70vh; /* Change from fixed height to min-height for better responsiveness */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .bc {
@@ -179,19 +195,39 @@
     transform: scale(1.03);
 }
 
+/* Improved responsiveness for additional breakpoints */
+@media (max-width: 1200px) {
+    .landing-sec {
+        margin: 60px 80px;
+    }
+}
+
 /* Ensure responsiveness for smaller screens */
 @media (max-width: 1024px) {
     .landing-sec {
-        margin: 0 60px;
+        margin: 40px 60px;
     }
     .booking-container {
-        height: auto;
+        min-height: 60vh;
+        padding-top: 30px;
+    }
+}
+
+@media (max-width: 992px) {
+    .landing-sec {
+        margin: 30px 40px;
+    }
+    .landing h1 {
+        font-size: 36px;
+    }
+    .landing h4 {
+        font-size: 20px;
     }
 }
 
 @media (max-width: 768px) {
     .landing-sec {
-        margin: 0 20px;
+        margin: 20px 20px;
     }
     .landing-content {
         flex-direction: column;
@@ -208,20 +244,74 @@
         margin-left: 15px;
         margin-right: 15px;
         padding: 20px 15px;
+        min-height: 50vh;
     }
     .landing-image{
-        width: 95%;
+        width: 80%;
         margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .landing-sec {
+        margin: 15px 10px;
+    }
+    .landing h1 {
+        font-size: 32px;
+    }
+    .landing p {
+        font-size: 15px;
+    }
+    .landing-image {
+        width: 85%;
+    }
+    .booking-container {
+        min-height: 45vh;
     }
 }
 
 @media (max-width: 480px) {
     .booking-container {
         padding: 15px 10px;
-        margin-top: 3rem;
+        margin-top: 1rem;
+        min-height: 40vh;
     }
     
     .book-btn {
         padding: 10px 20px;
+    }
+    
+    .landing-image {
+        width: 95%;
+    }
+    
+    .landing h1 {
+        font-size: 28px;
+    }
+    
+    .landing h4 {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 375px) {
+    .booking-container {
+        min-height: 35vh;
+    }
+    
+    .bc {
+        font-size: 1.8rem;
+    }
+    
+    .booking-container p {
+        font-size: 1rem;
+    }
+    
+    .landing h1 {
+        font-size: 26px;
+    }
+    
+    .landing p {
+        font-size: 14px;
     }
 }
