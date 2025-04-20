@@ -13,9 +13,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-
-
-
 // CREATE a new booking
 router.post('/post', async (req, res) => {
   const booking = new Booking({
@@ -24,17 +21,19 @@ router.post('/post', async (req, res) => {
     end: new Date(req.body.end),
     bookedBy: req.body.bookedBy || 'Anonymous',
     description: req.body.description || '',
-    isConfirmed: true
+    isConfirmed: false,
+    status: 'pending',
+    hall: req.body.hall || ''
   });
 
   try {
     // Check if the slot is available
-    const isAvailable = await Booking.checkAvailability(booking.start, booking.end);
-    
+    const isAvailable = await Booking.checkAvailability(booking.start, booking.end, booking.hall);
+
     if (!isAvailable) {
       return res.status(409).json({ message: 'The selected time slot is already booked' });
     }
-    
+
     const newBooking = await booking.save();
     res.status(201).json(newBooking);
   } catch (err) {
@@ -42,11 +41,10 @@ router.post('/post', async (req, res) => {
   }
 });
 
-
-// UPDATE isConfirmed field by booking ID
+// UPDATE isConfirmed and status field by booking ID
 router.put('/:id', async (req, res) => {
   const bookingId = req.params.id;
-  const { isConfirmed } = req.body;
+  const { isConfirmed, status } = req.body;
 
   try {
     const booking = await Booking.findById(bookingId);
@@ -55,15 +53,21 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
-    booking.isConfirmed = isConfirmed;
-    const updatedBooking = await booking.save();
+    // Update fields
+    if (typeof isConfirmed === 'boolean') {
+      booking.isConfirmed = isConfirmed;
+      booking.status = isConfirmed ? 'approved' : 'rejected';
+    }
 
+    if (status) {
+      booking.status = status; // Allow manual status override if needed
+    }
+
+    const updatedBooking = await booking.save();
     res.json(updatedBooking);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
-
-
 
 module.exports = router;

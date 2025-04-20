@@ -47,8 +47,8 @@ const BookingCalendar = () => {
         end: new Date(booking.end),
         bookedBy: booking.bookedBy,
         description: booking.description,
-        hall: booking.hall,
-        isConfirmed: booking.isConfirmed
+        hall: booking.hall, // Make sure this matches the field name in your schema
+        isConfirmed: booking.isConfirmed !== undefined ? booking.isConfirmed : false // Ensure default if undefined
       }));
       
       setEvents(formattedEvents);
@@ -143,8 +143,9 @@ const BookingCalendar = () => {
           bookedBy: formData.bookedBy || "Anonymous",
           description: formData.description || "",
           hall: formData.hall,
-          isConfirmed: true
+          isConfirmed: false // Explicitly set this to false for new bookings
         };
+        console.log(bookingData);
 
         // Send booking to backend
         const response = await axios.post('http://localhost:5000/api/bookings/post', bookingData);
@@ -158,7 +159,7 @@ const BookingCalendar = () => {
           bookedBy: response.data.bookedBy,
           description: response.data.description,
           hall: response.data.hall,
-          isConfirmed: response.data.isConfirmed
+          isConfirmed: response.data.isConfirmed || false // Ensure default if undefined
         };
 
         const filteredEvts = events.filter(event => !event.isTemporary);
@@ -173,7 +174,7 @@ const BookingCalendar = () => {
         console.error("Error creating booking:", err);
         
         if (err.response && err.response.status === 409) {
-          alert("This time slot is already booked. Please select another time.");
+          alert("This time slot is already booked for this hall. Please select another time or hall.");
         } else {
           alert("Failed to confirm booking. Please try again.");
         }

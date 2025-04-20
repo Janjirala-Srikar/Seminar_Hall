@@ -23,7 +23,7 @@ const BookingSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  hallname: {
+  hall: {
     type: String,
     trim: true
   },
@@ -31,14 +31,20 @@ const BookingSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending'
+  },
   createdAt: {
     type: Date,
     default: Date.now
   }
 });
 
-BookingSchema.statics.checkAvailability = async function(start, end, bookingId = null) {
+BookingSchema.statics.checkAvailability = async function(start, end, hall, bookingId = null) {
   const query = {
+    hall: hall,
     $or: [
       { start: { $lte: start }, end: { $gt: start } },
       { start: { $lt: end }, end: { $gte: end } },
