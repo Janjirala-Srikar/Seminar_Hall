@@ -140,7 +140,7 @@ function BookingDisplay() {
     
     console.log("Sending booking data:", newBooking);
     
-    axios.post('http://localhost:5000/api/bookings/post', newBooking)
+    axios.post('http://localhost:5000/api/bookings/book', newBooking)
       .then(response => {
         console.log("Booking created:", response);
         displayNotification('New booking created successfully!', 'success');
@@ -153,10 +153,27 @@ function BookingDisplay() {
       });
   };
 
+  const handleStatusUpdate = (bookingId, action) => {
+    axios.put(`http://localhost:5000/api/bookings/${bookingId}/status`, { action })
+      .then(response => {
+        console.log("Status updated:", response.data);
+        displayNotification(
+          `Booking ${action === 'confirm' ? 'confirmed' : 'rejected'} successfully!`, 
+          'success'
+        );
+        fetchBookings(); // Refresh the bookings data
+        handleClose(); // Close the modal
+      })
+      .catch(err => {
+        console.error('Error updating booking status:', err);
+        displayNotification(`Failed to ${action} booking. Please try again.`, 'danger');
+      });
+  };
+
   const getStatusBadge = (booking) => {
     if (booking.status === 'rejected') {
       return <span className="badge bg-danger">Rejected</span>;
-    } else if (booking.status === 'confirmed' || booking.isConfirmed) {
+    } else if (booking.status === 'approved' || booking.isConfirmed) {
       return <span className="badge bg-success">Confirmed</span>;
     } else {
       return <span className="badge bg-warning text-dark">Pending</span>;
@@ -173,7 +190,7 @@ function BookingDisplay() {
           borderLeft: '3px solid var(--primary)'
         }
       };
-    } else if (event.status === 'confirmed') {
+    } else if (event.status === 'approved' || event.status === 'confirmed') {
       return {
         style: {
           backgroundColor: 'var(--primary)',
@@ -308,7 +325,7 @@ function BookingDisplay() {
                         <th scope="row" className="ps-4">{index + 1}</th>
                         <td className="fw-medium">{booking.title || booking.name || 'Unnamed Booking'}</td>
                         <td>{booking.bookedBy || booking.customer || 'Unknown'}</td>
-                        <td>{booking.hall || booking.location || 'N/A'}</td>
+                        <td>{booking.hallname || booking.hall || booking.location || 'N/A'}</td>
                         <td>
                           <div>
                             {new Date(booking.start || booking.date).toLocaleDateString('en-US', { 
@@ -392,7 +409,7 @@ function BookingDisplay() {
                       className="form-select"
                       id="hallname"
                       name="hallname"
-                      value={newBooking.hall}
+                      value={newBooking.hallname}
                       onChange={handleInputChange}
                       required
                     >
@@ -490,7 +507,7 @@ function BookingDisplay() {
                         </div>
                         <div className="mb-3">
                           <p className="text-muted small mb-1">Location</p>
-                          <h6>{selectedBooking.hall || selectedBooking.location || 'N/A'}</h6>
+                          <h6>{selectedBooking.hallname || selectedBooking.hall || selectedBooking.location || 'N/A'}</h6>
                         </div>
                         <div className="row mb-3">
                           <div className="col-6">
@@ -507,10 +524,17 @@ function BookingDisplay() {
                           {getStatusBadge(selectedBooking)}
                         </div>
                         <div className="d-flex gap-2 mb-2">
-                          <button className="btn btn-sm" style={{ background: 'var(--primary)', color: 'var(--white)' }}>
+                          <button 
+                            className="btn btn-sm" 
+                            style={{ background: 'var(--primary)', color: 'var(--white)' }}
+                            onClick={() => handleStatusUpdate(selectedBooking._id, 'confirm')}
+                          >
                             <i className="bi bi-check-circle me-1"></i> Confirm
                           </button>
-                          <button className="btn btn-sm btn-outline-secondary">
+                          <button 
+                            className="btn btn-sm btn-outline-secondary"
+                            onClick={() => handleStatusUpdate(selectedBooking._id, 'reject')}
+                          >
                             <i className="bi bi-x-circle me-1"></i> Reject
                           </button>
                         </div>

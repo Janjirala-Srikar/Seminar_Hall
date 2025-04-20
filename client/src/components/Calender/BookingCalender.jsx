@@ -148,7 +148,7 @@ const BookingCalendar = () => {
         console.log(bookingData);
 
         // Send booking to backend
-        const response = await axios.post('http://localhost:5000/api/bookings/post', bookingData);
+        const response = await axios.post('http://localhost:5000/api/bookings/book', bookingData);
         
         // Update local state with the confirmed booking from backend
         const newEvent = {
