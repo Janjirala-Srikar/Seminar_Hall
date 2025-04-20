@@ -215,7 +215,7 @@ function SignInComponent() {
       
       // If the user logged in less than 24 hours ago, auto-redirect to home
       if (hoursSinceLogin < 24) {
-        navigate('/Home');
+        navigate('/signin');
       } else {
         // If session is expired, clear it
         sessionStorage.removeItem('currentUser');
