@@ -2,11 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { Calendar, momentLocalizer, Views } from "react-big-calendar";
 import moment from "moment";
 import axios from 'axios';
+import emailjs from 'emailjs-com'; // Import EmailJS
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import './RequestDashboard.css';
 
 const localizer = momentLocalizer(moment);
+
+// EmailJS configuration - replace with your actual IDs
+const EMAILJS_SERVICE_ID = "service_hhd08wj";
+const EMAILJS_TEMPLATE_ID = "template_ftwfvf9";
+const EMAILJS_USER_ID = "E5kMlbPJH7tAvXFvL";
 
 function BookingDisplay() {
   const [bookings, setBookings] = useState([]);
@@ -25,7 +31,8 @@ function BookingDisplay() {
     start: '',
     end: '',
     bookedBy: '',
-    hallname: ''
+    hallname: '',
+    email: '' // Add email field
   });
 
   const fetchBookings = () => {
@@ -47,8 +54,9 @@ function BookingDisplay() {
             start: new Date(booking.start || booking.date),
             end: booking.end ? new Date(booking.end) : new Date(new Date(booking.start || booking.date).getTime() + 3600000),
             bookedBy: booking.bookedBy || booking.customer || 'Unknown',
-            hallname: booking.hallname || booking.location || 'N/A',
+            hallname: booking.hallname || booking.hall || booking.location || 'N/A',
             status: booking.status || (booking.isConfirmed ? 'confirmed' : 'pending'),
+            email: booking.email || '', // Include email for notifications
             resource: booking // Store the entire booking object for reference
           }));
           
@@ -74,6 +82,9 @@ function BookingDisplay() {
     link.rel = 'stylesheet';
     link.href = 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css';
     document.head.appendChild(link);
+    
+    // Initialize EmailJS
+    emailjs.init(EMAILJS_USER_ID);
     
     return () => {
       document.head.removeChild(link);
@@ -108,7 +119,8 @@ function BookingDisplay() {
       start: '',
       end: '',
       bookedBy: '',
-      hallname: ''
+      hallname: '',
+      email: ''
     });
   };
 
@@ -138,6 +150,12 @@ function BookingDisplay() {
       return;
     }
     
+    // Ensure email is included
+    if (!newBooking.email) {
+      displayNotification('Please provide an email address for notifications', 'danger');
+      return;
+    }
+    
     console.log("Sending booking data:", newBooking);
     
     axios.post('http://localhost:5000/api/bookings/book', newBooking)
@@ -153,14 +171,132 @@ function BookingDisplay() {
       });
   };
 
+  // Function to send notification email
+  // const sendNotificationEmail = (booking, status) => {
+  //   if (!booking.email) {
+  //     console.warn("No email address provided for booking notification");
+  //     return Promise.resolve();
+  //   }
+
+  //   const startDateTime = new Date(booking.start || booking.date);
+  //   const endDateTime = booking.end ? new Date(booking.end) : new Date(startDateTime.getTime() + 3600000);
+    
+  //   const templateParams = {
+  //     to_name: booking.bookedBy || booking.customer || "Valued Customer",
+  //     to_email: booking.email,
+  //     booking_title: booking.title || booking.name || "Your Booking",
+  //     booking_date: startDateTime.toLocaleDateString('en-US', { 
+  //       year: 'numeric', month: 'long', day: 'numeric'
+  //     }),
+  //     booking_time: `${startDateTime.toLocaleTimeString('en-US', { 
+  //       hour: '2-digit', minute: '2-digit'
+  //     })} - ${endDateTime.toLocaleTimeString('en-US', { 
+  //       hour: '2-digit', minute: '2-digit'
+  //     })}`,
+  //     booking_location: booking.hallname || booking.hall || booking.location || "N/A",
+  //     booking_status: status === 'confirm' ? 'APPROVED' : 'REJECTED',
+  //     rejection_reason: status === 'reject' ? "The requested slot is unavailable." : "",
+  //     admin_message: status === 'confirm' 
+  //       ? "Your booking has been approved. We look forward to hosting your event."
+  //       : "We're sorry, but your booking request has been rejected. Please contact us for more information."
+  //   };
+    
+  //   console.log("Sending email with params:", templateParams);
+    
+  //   return emailjs.send(
+  //     EMAILJS_SERVICE_ID, 
+  //     EMAILJS_TEMPLATE_ID, 
+  //     templateParams
+  //   )
+  //   .then(response => {
+  //     console.log('Email sent successfully:', response);
+  //     return response;
+  //   })
+  //   .catch(err => {
+  //     console.error('Failed to send email:', err);
+  //     throw err;
+  //   });
+  // };
+
+  const sendNotificationEmail = (booking, status) => {
+    if (!booking.email) {
+      console.warn("No email address provided for booking notification");
+      return Promise.resolve();
+    }
+  
+    const startDateTime = new Date(booking.start || booking.date);
+    const endDateTime = booking.end
+      ? new Date(booking.end)
+      : new Date(startDateTime.getTime() + 3600000); // default to 1 hour later
+  
+    const templateParams = {
+      email: booking.email, // ✅ Matches {{email}} in your EmailJS template
+      name: booking.bookedBy || booking.customer || "Valued Customer", // ✅ Matches {{name}} in EmailJS
+      title: status === 'confirm' ? 'APPROVED' : 'REJECTED', // ✅ Matches {{title}} in subject line
+      message:
+        status === 'confirm'
+          ? "Your booking has been approved. We look forward to hosting your event."
+          : "We're sorry, but your booking request has been rejected. Please contact us for more information.",
+      booking_date: startDateTime.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }),
+      booking_time: `${startDateTime.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })} - ${endDateTime.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })}`,
+      booking_location: booking.hallname || booking.hall || booking.location || "N/A",
+      rejection_reason: status === 'reject' ? "The requested slot is unavailable." : "",
+    };
+  
+    console.log("Sending email with params:", templateParams);
+  
+    return emailjs
+      .send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+      .then((response) => {
+        console.log("Email sent successfully:", response);
+        return response;
+      })
+      .catch((err) => {
+        console.error("Failed to send email:", err);
+        throw err;
+      });
+  };
+  
+
   const handleStatusUpdate = (bookingId, action) => {
+    // Find the booking object to get email info
+    const bookingToUpdate = bookings.find(booking => booking._id === bookingId || booking.id === bookingId);
+    
+    if (!bookingToUpdate) {
+      displayNotification('Booking information not found', 'danger');
+      return;
+    }
+    
     axios.put(`http://localhost:5000/api/bookings/${bookingId}/status`, { action })
       .then(response => {
         console.log("Status updated:", response.data);
-        displayNotification(
-          `Booking ${action === 'confirm' ? 'confirmed' : 'rejected'} successfully!`, 
-          'success'
-        );
+        
+        // Send notification email
+        return sendNotificationEmail(bookingToUpdate, action)
+          .then(() => {
+            displayNotification(
+              `Booking ${action === 'confirm' ? 'confirmed' : 'rejected'} and notification sent!`, 
+              'success'
+            );
+          })
+          .catch(() => {
+            displayNotification(
+              `Booking ${action === 'confirm' ? 'confirmed' : 'rejected'} but email notification failed.`, 
+              'warning'
+            );
+          });
+      })
+      .then(() => {
         fetchBookings(); // Refresh the bookings data
         handleClose(); // Close the modal
       })
@@ -232,7 +368,6 @@ function BookingDisplay() {
       </div>
     );
   }
-
   return (
     <div className="booking-system min-vh-100" style={{ background: 'var(--background-light)' }}>
       {/* Notification toast */}
