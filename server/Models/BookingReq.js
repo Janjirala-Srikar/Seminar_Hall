@@ -23,6 +23,12 @@ const BookingSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  email: {
+    type: String,
+    required: true,
+    trim: true,
+    match: [/.+\@.+\..+/, 'Please fill a valid email address']
+  },
   hall: {
     type: String,
     trim: true

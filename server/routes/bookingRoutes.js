@@ -19,6 +19,7 @@ router.post('/book', async (req, res) => {
     start: new Date(req.body.start),
     end: new Date(req.body.end),
     bookedBy: req.body.bookedBy || 'Anonymous',
+    email: req.body.email, // <- Required field
     description: req.body.description || '',
     isConfirmed: false,
     status: 'pending',

@@ -47,8 +47,8 @@ const BookingCalendar = () => {
         end: new Date(booking.end),
         bookedBy: booking.bookedBy,
         description: booking.description,
-        hall: booking.hall, // Make sure this matches the field name in your schema
-        isConfirmed: booking.isConfirmed !== undefined ? booking.isConfirmed : false // Ensure default if undefined
+        hall: booking.hall,
+        isConfirmed: booking.isConfirmed
       }));
       
       setEvents(formattedEvents);
@@ -135,6 +135,45 @@ const BookingCalendar = () => {
 
     if (selectedSlot) {
       try {
+        // Get user info from sessionStorage
+        let userEmail = "";
+        let userData = null;
+        
+        try {
+          const userDataString = sessionStorage.getItem('userData');
+          if (userDataString) {
+            userData = JSON.parse(userDataString);
+          } else {
+            // Try to get it directly as shown in your example
+            const sessionData = sessionStorage.getItem('{"uid":"ajtZE2yvcHOMwIOz7i2Ow7UHsmN2","email":"srikarjanjirala92@gmail.com","displayName":"","userType":"faculty","photoURL":"","emailVerified":false,"lastLoginTime":"2025-04-20T19:17:01.363Z"}');
+            if (sessionData) {
+              userData = JSON.parse(sessionData);
+            }
+          }
+          
+          // If we still don't have userData, check all sessionStorage keys
+          if (!userData) {
+            for (let i = 0; i < sessionStorage.length; i++) {
+              const key = sessionStorage.key(i);
+              try {
+                const value = sessionStorage.getItem(key);
+                const parsedValue = JSON.parse(value);
+                if (parsedValue && parsedValue.email) {
+                  userData = parsedValue;
+                  break;
+                }
+              } catch (e) {
+                // Skip if can't parse as JSON
+                continue;
+              }
+            }
+          }
+          
+          userEmail = userData?.email || "";
+        } catch (e) {
+          console.error("Error retrieving user data from sessionStorage:", e);
+        }
+
         // Prepare booking data for backend
         const bookingData = {
           title: formData.title || "New Booking",
@@ -143,10 +182,9 @@ const BookingCalendar = () => {
           bookedBy: formData.bookedBy || "Anonymous",
           description: formData.description || "",
           hall: formData.hall,
-          isConfirmed: false // Explicitly set this to false for new bookings
+          email: userEmail
         };
         console.log(bookingData);
-
         // Send booking to backend
         const response = await axios.post('http://localhost:5000/api/bookings/book', bookingData);
         
@@ -159,7 +197,8 @@ const BookingCalendar = () => {
           bookedBy: response.data.bookedBy,
           description: response.data.description,
           hall: response.data.hall,
-          isConfirmed: response.data.isConfirmed || false // Ensure default if undefined
+          isConfirmed: response.data.isConfirmed,
+          email: response.data.email
         };
 
         const filteredEvts = events.filter(event => !event.isTemporary);
@@ -174,7 +213,7 @@ const BookingCalendar = () => {
         console.error("Error creating booking:", err);
         
         if (err.response && err.response.status === 409) {
-          alert("This time slot is already booked for this hall. Please select another time or hall.");
+          alert("This time slot is already booked. Please select another time.");
         } else {
           alert("Failed to confirm booking. Please try again.");
         }
