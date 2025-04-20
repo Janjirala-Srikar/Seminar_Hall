@@ -33,26 +33,23 @@ const BookingSchema = new mongoose.Schema({
   }
 });
 
-// Validation to prevent overlapping bookings
+
 BookingSchema.statics.checkAvailability = async function(start, end, bookingId = null) {
   const query = {
     $or: [
-      // New booking starts during an existing booking
+      
       { start: { $lte: start }, end: { $gt: start } },
-      // New booking ends during an existing booking
       { start: { $lt: end }, end: { $gte: end } },
-      // New booking completely contains an existing booking
       { start: { $gte: start }, end: { $lte: end } }
     ]
   };
   
-  // If we're updating an existing booking, exclude it from the check
   if (bookingId) {
     query._id = { $ne: bookingId };
   }
   
   const existingBooking = await this.findOne(query);
-  return !existingBooking; // Returns true if slot is available
+  return !existingBooking; 
 };
 
 module.exports = mongoose.model('Booking', BookingSchema);
