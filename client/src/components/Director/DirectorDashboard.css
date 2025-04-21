@@ -75,6 +75,11 @@ body {
   margin: 0 auto;
   width: 100%;
 }
+.navhome{
+  background-image: url("https://cdn.brandfetch.io/idD_5AfN3y/w/329/h/303/theme/light/logo.png?c=1dxbfHSJFAPEGdCLU4o5B");
+  height: 10px;
+  width: 5px;
+}
 
 .director-navbar-left, .director-navbar-right {
   display: flex;
