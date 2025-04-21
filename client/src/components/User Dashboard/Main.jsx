@@ -5,7 +5,8 @@ import { getAuth, signOut } from 'firebase/auth';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import BookingCalender from '../Calender/BookingCalender'
+// import BookingCalender from '../Calender/BookingCalender'
+import HallSelection from './HallSelection'
 import ManageBookings from './ManageBookings'
 import { FaHome, FaCalendarCheck, FaListAlt, FaCog, FaSignOutAlt, FaUser, FaBars } from 'react-icons/fa';
 import UserSettings from './UserSettings';
@@ -164,7 +165,7 @@ function Dashboard() {
       case 'home':
         return <HomeComponent />; 
       case 'bookHall':
-        return <BookingCalender />; 
+        return <HallSelection />; 
       case 'manageBookings':
         return <ManageBookings/>; 
       case 'settings':
@@ -176,14 +177,6 @@ function Dashboard() {
 
   // Placeholder components
   const HomeComponent = () => (
-    <div className=""></div>
-  );
-
-  const ManageBookingsComponent = () => (
-    <div className=""></div>
-  );
-  
-  const SettingsComponent = () => (
     <div className=""></div>
   );
 

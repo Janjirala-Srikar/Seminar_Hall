@@ -17,21 +17,32 @@ const AVAILABLE_HALLS = [
   "APJ Abdul Kalam Hall"
 ];
 
-const BookingCalendar = () => {
+const BookingCalendar = ({ initialSelectedHall }) => {
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
+  const [allBookings, setAllBookings] = useState([]); // Store all bookings including pending
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [view, setView] = useState("month");
   const [date, setDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedHall, setSelectedHall] = useState("All Halls");
+  const [selectedHall, setSelectedHall] = useState(initialSelectedHall || "All Halls");
+  const [selectedBooking, setSelectedBooking] = useState(null);
   const [formData, setFormData] = useState({
     title: "New Booking",
     bookedBy: "",
     description: "",
-    hall: "" // No default hall, user must select one
+    hall: initialSelectedHall || "" // Initialize with the hall passed from parent
   });
+
+  // Update local state when initialSelectedHall prop changes
+  useEffect(() => {
+    setSelectedHall(initialSelectedHall || "All Halls");
+    setFormData(prev => ({
+      ...prev,
+      hall: initialSelectedHall || ""
+    }));
+  }, [initialSelectedHall]);
 
   // Fetch all bookings from the backend
   const fetchBookings = useCallback(async () => {
@@ -42,16 +53,25 @@ const BookingCalendar = () => {
       // Convert backend data format to calendar events format
       const formattedEvents = response.data.map(booking => ({
         id: booking._id,
-        title: booking.title,
+        title: booking.title + (booking.isConfirmed || booking.status === "confirmed" ? " (Already Booked)" : ""),
         start: new Date(booking.start),
         end: new Date(booking.end),
         bookedBy: booking.bookedBy,
         description: booking.description,
         hall: booking.hall,
-        isConfirmed: booking.isConfirmed
+        isConfirmed: booking.isConfirmed,
+        status: booking.status || (booking.isConfirmed ? "confirmed" : "pending"),
+        email: booking.email
       }));
       
-      setEvents(formattedEvents);
+      // Store all bookings for reference
+      setAllBookings(formattedEvents);
+      
+      // Show only confirmed bookings on the calendar
+      const confirmedEvents = formattedEvents.filter(event => 
+        event.isConfirmed || event.status === "confirmed"
+      );
+      setEvents(confirmedEvents);
       setError(null);
     } catch (err) {
       console.error("Error fetching bookings:", err);
@@ -87,13 +107,125 @@ const BookingCalendar = () => {
     const filteredEvts = events.filter(event => !event.isTemporary);
     setEvents(filteredEvts);
     setSelectedSlot(null);
+    setSelectedBooking(null);
   }, [events]);
 
   const handleHallChange = (e) => {
     setSelectedHall(e.target.value);
+    
+    // Also update the form data when changing halls
+    if (e.target.value !== "All Halls") {
+      setFormData(prev => ({
+        ...prev,
+        hall: e.target.value
+      }));
+    }
+  };
+
+  // Check if a date is in the past
+  const isPastDate = (date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of day for accurate date comparison
+    return date < today;
+  };
+
+  // Check if a time is in the past
+  const isPastTime = (date) => {
+    const now = new Date();
+    return date < now;
+  };
+
+  // Check if the slot conflicts with any CONFIRMED bookings only
+  const checkForConflicts = (start, end, hall) => {
+    // Check against ONLY confirmed bookings
+    const confirmedBookings = allBookings.filter(booking => 
+      !booking.isTemporary && 
+      (booking.isConfirmed || booking.status === "confirmed") &&
+      (hall === "" || hall === "All Halls" || booking.hall === hall)
+    );
+    
+    return confirmedBookings.find(booking => {
+      // Check if the new booking overlaps with existing booking
+      return (
+        (start >= booking.start && start < booking.end) || // New start time falls within existing booking
+        (end > booking.start && end <= booking.end) || // New end time falls within existing booking
+        (start <= booking.start && end >= booking.end) // New booking completely encompasses existing booking
+      );
+    });
+  };
+
+  // Handle clicking on an existing event
+  const handleEventClick = (event) => {
+    // Don't do anything with temporary events
+    if (event.isTemporary) return;
+    
+    // Set selected booking
+    setSelectedBooking(event);
+    
+    // Clear any existing selected slot
+    setSelectedSlot(null);
+    
+    // Fetch the latest status of this booking
+    fetchBookingStatus(event.id);
+  };
+  
+  // Fetch the current status of a booking
+  const fetchBookingStatus = async (bookingId) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/api/bookings/${bookingId}/status`);
+      
+      // Update the booking status in our allBookings reference list
+      const updatedAllBookings = allBookings.map(event => {
+        if (event.id === bookingId) {
+          return {
+            ...event,
+            isConfirmed: response.data.isConfirmed,
+            status: response.data.status || (response.data.isConfirmed ? "confirmed" : "pending"),
+            title: response.data.title + (response.data.isConfirmed || response.data.status === "confirmed" ? " (Already Booked)" : "")
+          };
+        }
+        return event;
+      });
+      
+      setAllBookings(updatedAllBookings);
+      
+      // Update only confirmed events in the events list
+      const confirmedEvents = updatedAllBookings.filter(event => 
+        (event.isConfirmed || event.status === "confirmed") && !event.isTemporary
+      );
+      
+      // Add any temporary events back
+      const temporaryEvents = events.filter(event => event.isTemporary);
+      setEvents([...confirmedEvents, ...temporaryEvents]);
+      
+      // Also update selected booking if it's the one we just checked
+      if (selectedBooking && selectedBooking.id === bookingId) {
+        setSelectedBooking({
+          ...selectedBooking,
+          isConfirmed: response.data.isConfirmed,
+          status: response.data.status || (response.data.isConfirmed ? "confirmed" : "pending"),
+          title: response.data.title + (response.data.isConfirmed || response.data.status === "confirmed" ? " (Already Booked)" : "")
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching booking status:", err);
+    }
   };
 
   const handleSlotSelection = (slotInfo) => {
+    // First check if the selected date is in the past
+    if (isPastDate(new Date(slotInfo.start))) {
+      alert("Cannot book dates in the past. Please select a current or future date.");
+      return;
+    }
+
+    // For today, also check if the selected time is in the past
+    const isToday = moment(slotInfo.start).isSame(moment(), 'day');
+    if (isToday && isPastTime(new Date(slotInfo.start))) {
+      alert("Cannot book time slots in the past. Please select a current or future time slot.");
+      return;
+    }
+
     // Only create a slot if the user explicitly selects a time in day or week view
     // Don't auto-create slots when clicking on dates from month view
     if (view === "day" || view === "week") {
@@ -102,13 +234,45 @@ const BookingCalendar = () => {
       const roundedStart = moment(startTime).startOf('hour');
       let roundedEnd = moment(roundedStart).add(3, 'hours');
       
+      // Additional check for rounded times
+      if (isPastTime(roundedStart.toDate())) {
+        alert("Cannot book time slots in the past. Please select a current or future time slot.");
+        return;
+      }
+      
+      // Use the specifically selected hall instead of the filter dropdown value
+      const hallToCheck = selectedHall === "All Halls" ? formData.hall : selectedHall;
+      
+      // Check for conflicts with ONLY confirmed bookings
+      const conflictingEvent = checkForConflicts(
+        roundedStart.toDate(), 
+        roundedEnd.toDate(), 
+        hallToCheck
+      );
+      
+      if (conflictingEvent) {
+        // If there's a conflict, show the booking details instead of allowing a new booking
+        setSelectedBooking(conflictingEvent);
+        setSelectedSlot(null);
+        
+        // Clear any existing temporary events
+        const filteredEvts = events.filter(event => !event.isTemporary);
+        setEvents(filteredEvts);
+        
+        alert(`This time slot is already booked for "${conflictingEvent.title.replace(" (Already Booked)", "")}" in ${conflictingEvent.hall}.`);
+        return;
+      }
+      
+      // Clear the selected booking when selecting a new slot
+      setSelectedBooking(null);
+
       const newSelection = {
         start: roundedStart.toDate(),
         end: roundedEnd.toDate(),
         title: "Selected Slot",
         isSelected: true,
         isTemporary: true,
-        hall: selectedHall === "All Halls" ? "" : selectedHall
+        hall: hallToCheck
       };
 
       // Remove any existing temporary events
@@ -121,12 +285,13 @@ const BookingCalendar = () => {
       });
 
       // Reset form data for new booking with currently selected hall
-      setFormData({
+      setFormData(prev => ({
+        ...prev,
         title: "New Booking",
         bookedBy: "",
-        description: "",
-        hall: selectedHall === "All Halls" ? "" : selectedHall
-      });
+        description: ""
+        // Keep the hall as is
+      }));
     } else {
       // If coming from month view, just switch to day view without creating a slot
       setDate(slotInfo.start);
@@ -136,6 +301,7 @@ const BookingCalendar = () => {
       const filteredEvts = events.filter(event => !event.isTemporary);
       setEvents(filteredEvts);
       setSelectedSlot(null);
+      setSelectedBooking(null);
     }
   };
 
@@ -145,9 +311,27 @@ const BookingCalendar = () => {
   };
 
   const handleConfirmBooking = async () => {
-    // Add validation to ensure a hall is selected
+    // Add validation for hall selection
     if (!formData.hall) {
       alert("Please select a hall before confirming booking");
+      return;
+    }
+
+    // Double-check that the selected slot is not in the past
+    if (isPastTime(selectedSlot.start)) {
+      alert("Cannot book time slots in the past. Please select a current or future time slot.");
+      return;
+    }
+
+    // Final check for conflicts with ONLY confirmed bookings before submission
+    const conflictingEvent = checkForConflicts(
+      selectedSlot.start, 
+      selectedSlot.end, 
+      formData.hall
+    );
+    
+    if (conflictingEvent) {
+      alert(`This time slot is already booked for "${conflictingEvent.title.replace(" (Already Booked)", "")}" in ${conflictingEvent.hall}. Please select another time or hall.`);
       return;
     }
 
@@ -206,22 +390,32 @@ const BookingCalendar = () => {
         // Send booking to backend
         const response = await axios.post('http://localhost:5000/api/bookings/book', bookingData);
         
-        // Update local state with the confirmed booking from backend
-        const newEvent = {
+        // Create the new event object
+        const newBooking = {
           id: response.data._id,
-          title: response.data.title,
+          title: response.data.title + (response.data.isConfirmed || response.data.status === "confirmed" ? " (Already Booked)" : ""),
           start: new Date(response.data.start),
           end: new Date(response.data.end),
           bookedBy: response.data.bookedBy,
           description: response.data.description,
           hall: response.data.hall,
           isConfirmed: response.data.isConfirmed,
+          status: response.data.status || (response.data.isConfirmed ? "confirmed" : "pending"),
           email: response.data.email
         };
 
-        // Remove all temporary events
-        const filteredEvts = events.filter(event => !event.isTemporary);
-        setEvents([...filteredEvts, newEvent]);
+        // Add to allBookings reference list
+        setAllBookings(prev => [...prev, newBooking]);
+        
+        // Only add confirmed bookings to visible events
+        if (newBooking.isConfirmed || newBooking.status === "confirmed") {
+          const filteredEvts = events.filter(event => !event.isTemporary);
+          setEvents([...filteredEvts, newBooking]);
+        } else {
+          // Remove temporary events but don't add the pending booking to visible events
+          const filteredEvts = events.filter(event => !event.isTemporary);
+          setEvents(filteredEvts);
+        }
         
         // Reset selected slot
         setSelectedSlot(null);
@@ -233,7 +427,7 @@ const BookingCalendar = () => {
         setView("month");
         
         // Show success message
-        alert("Booking confirmed successfully!");
+        alert("Booking request submitted successfully! It will appear on the calendar once confirmed by an admin.");
       } catch (err) {
         console.error("Error creating booking:", err);
         
@@ -251,28 +445,39 @@ const BookingCalendar = () => {
     if (event.isTemporary) {
       return {
         style: {
-          backgroundColor: '#98FB98', // Light green
+          backgroundColor: '#98FB98', // Light green for temporary selection
           border: '2px solid #90EE90',
           color: '#006400', // Dark green text for contrast
           fontWeight: 'bold'
         }
       };
     }
-    if (event.isConfirmed) {
+    
+    // Confirmed bookings (we only show confirmed bookings now)
+    return {
+      style: {
+        backgroundColor: '#FF9999', // Light red for confirmed bookings
+        border: '2px solid #FF6666',
+        color: '#8B0000', // Dark red text for contrast
+        fontWeight: 'bold',
+        opacity: 0.9
+      }
+    };
+  };
+
+  // Custom date cell styling to gray out past dates
+  const dayPropGetter = (date) => {
+    if (isPastDate(date)) {
       return {
+        className: 'past-date',
         style: {
-          backgroundColor: '#ADD8E6', // Light blue
-          border: '2px solid #87CEEB',
-          color: '#00008B' // Dark blue text for contrast
+          backgroundColor: '#f5f5f5',
+          opacity: 0.7,
+          cursor: 'not-allowed'
         }
       };
     }
-    return {
-      style: {
-        backgroundColor: '#E0E0E0', // Light gray for existing events
-        color: '#424242'
-      }
-    };
+    return {};
   };
 
   const minTime = new Date();
@@ -283,30 +488,46 @@ const BookingCalendar = () => {
   return (
     <div className="container">
       <div className="row justify-content-center">
-        <div className="col-lg-10 col-md-12">
+        <div className="col-lg-12 col-md-12">
           <div className="card shadow-lg">
-           
             <div className="card-body">
-              {/* Hall Filter Dropdown */}
+              {/* Hall Filter Dropdown - Only show if not initializing with specific hall */}
+              {!initialSelectedHall && (
+                <div className="row mb-3">
+                  <div className="col-md-4">
+                    <div className="input-group">
+                      <span className="input-group-text bg-primary text-white">
+                        <BsFilter size={18} />
+                      </span>
+                      <select 
+                        className="form-select"
+                        value={selectedHall}
+                        onChange={handleHallChange}
+                        aria-label="Filter by hall"
+                      >
+                        <option value="All Halls">All Halls</option>
+                        {AVAILABLE_HALLS.map((hall, index) => (
+                          <option key={index} value={hall}>
+                            {hall}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div className="row mb-3">
-                <div className="col-md-4">
-                  <div className="input-group">
-                    <span className="input-group-text bg-primary text-white">
-                      <BsFilter size={18} />
-                    </span>
-                    <select 
-                      className="form-select"
-                      value={selectedHall}
-                      onChange={handleHallChange}
-                      aria-label="Filter by hall"
-                    >
-                      <option value="All Halls">All Halls</option>
-                      {AVAILABLE_HALLS.map((hall, index) => (
-                        <option key={index} value={hall}>
-                          {hall}
-                        </option>
-                      ))}
-                    </select>
+                <div className="col-12">
+                  <div className="d-flex justify-content-start gap-3">
+                    <div className="d-flex align-items-center">
+                      <div style={{ width: 16, height: 16, backgroundColor: '#FF9999', marginRight: 5 }}></div>
+                      <small>Confirmed (Already Booked)</small>
+                    </div>
+                    <div className="d-flex align-items-center">
+                      <div style={{ width: 16, height: 16, backgroundColor: '#98FB98', marginRight: 5 }}></div>
+                      <small>Selected Slot</small>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -338,13 +559,54 @@ const BookingCalendar = () => {
                   min={minTime}
                   max={maxTime}
                   onSelectSlot={handleSlotSelection}
+                  onSelectEvent={handleEventClick}
                   onDrillDown={handleDateClick}
                   defaultView="month"
                   eventPropGetter={eventStyleGetter}
+                  dayPropGetter={dayPropGetter}
                 />
               )}
               
-              {selectedSlot && (
+              {selectedBooking && (
+                <div className="mt-4">
+                  <div className="card mb-3">
+                    <div className="card-body">
+                      <h5 className="card-title">
+                        {selectedBooking.title.replace(" (Already Booked)", "")}
+                      </h5>
+                      <p className="card-text">
+                        <strong>Time:</strong> {moment(selectedBooking.start).format('MMMM D, YYYY h:mm A')} - {moment(selectedBooking.end).format('h:mm A')}
+                      </p>
+                      <p className="card-text">
+                        <strong>Hall:</strong> {selectedBooking.hall}
+                      </p>
+                      <p className="card-text">
+                        <strong>Booked By:</strong> {selectedBooking.bookedBy}
+                      </p>
+                      {selectedBooking.description && (
+                        <p className="card-text">
+                          <strong>Description:</strong> {selectedBooking.description}
+                        </p>
+                      )}
+                      <p className="card-text">
+                        <strong>Status:</strong> Confirmed
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <button 
+                    className="btn btn-primary btn-lg w-100"
+                    onClick={() => {
+                      setSelectedBooking(null);
+                      setSelectedSlot(null);
+                    }}
+                  >
+                    Close Details
+                  </button>
+                </div>
+              )}
+              
+              {selectedSlot && !selectedBooking && (
                 <div className="mt-4">
                   <div className="alert alert-info d-flex align-items-center">
                     <BsClock className="me-2" size={20} />
@@ -371,26 +633,37 @@ const BookingCalendar = () => {
                         />
                       </div>
                       
+                      {/* Hall selection - If initialized with specific hall, show readonly field */}
                       <div className="mb-3">
                         <label htmlFor="hall" className="form-label">
                           <BsBuilding className="me-2" />
-                          Select Hall
+                          {initialSelectedHall ? "Selected Hall" : "Select Hall"}
                         </label>
-                        <select
-                          className="form-select"
-                          id="hall"
-                          name="hall"
-                          value={formData.hall}
-                          onChange={handleInputChange}
-                          required
-                        >
-                          <option value="" disabled>-- Select a Hall --</option>
-                          {AVAILABLE_HALLS.map((hall, index) => (
-                            <option key={index} value={hall}>
-                              {hall}
-                            </option>
-                          ))}
-                        </select>
+                        {initialSelectedHall ? (
+                          <input
+                            type="text"
+                            className="form-control"
+                            id="hall"
+                            value={initialSelectedHall}
+                            readOnly
+                          />
+                        ) : (
+                          <select
+                            className="form-select"
+                            id="hall"
+                            name="hall"
+                            value={formData.hall}
+                            onChange={handleInputChange}
+                            required
+                          >
+                            <option value="" disabled>-- Select a Hall --</option>
+                            {AVAILABLE_HALLS.map((hall, index) => (
+                              <option key={index} value={hall}>
+                                {hall}
+                              </option>
+                            ))}
+                          </select>
+                        )}
                       </div>
                       
                       <div className="mb-3">
@@ -431,7 +704,7 @@ const BookingCalendar = () => {
                     onClick={handleConfirmBooking}
                   >
                     <BsCheckCircle className="me-2" />
-                    Confirm Booking
+                    Request Booking
                   </button>
                 </div>
               )}

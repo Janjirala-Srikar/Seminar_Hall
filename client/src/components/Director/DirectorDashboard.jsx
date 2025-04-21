@@ -162,8 +162,8 @@ function DirectorDashboard() {
   const renderContent = () => {
     console.log("Rendering content for:", activeSection);
     switch (activeSection) {
-      case 'bookingCalender':
-        return <BookingCalendar />;
+      // case 'bookingCalender':
+      //   return <BookingCalendar />;
       case 'bookingRequests':
         return <RequestDashboard />;
       case 'clubRequests':

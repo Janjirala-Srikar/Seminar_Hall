@@ -467,7 +467,7 @@ function BookingDisplay() {
                         </td>
                         <td className="py-3">
                           <span className="badge" style={{
-                            background: booking.status === 'rejected' ? 'red' : 
+                            background: booking.status === 'rejected' ? '#CD0000' : 
                                       (booking.status === 'approved' || booking.isConfirmed) ? 'green' : 
                                       'var(--medium-gray)',
                             color: 'var(--white)',
