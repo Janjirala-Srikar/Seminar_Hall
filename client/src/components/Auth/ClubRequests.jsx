@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { auth } from '../firebase/config'; // Import auth from our shared config
+import { auth } from '../firebase/config';
 import { createUserWithEmailAndPassword, fetchSignInMethodsForEmail } from "firebase/auth";
 import emailjs from '@emailjs/browser';
+import './ClubRequests.css'; // Make sure to use the updated CSS file
 
 function ClubRequests() {
   const [clubs, setClubs] = useState([]);
@@ -12,7 +13,6 @@ function ClubRequests() {
 
   // Initialize EmailJS with public key
   useEffect(() => {
-    // Update process.env to import.meta.env for Vite
     emailjs.init({
       publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
     });
@@ -25,7 +25,6 @@ function ClubRequests() {
       .then(response => {
         console.log("Fetched clubs data:", response);
         
-        // Check if response has a data property that is an array
         if (response && response.data && Array.isArray(response.data)) {
           setClubs(response.data);
         } else {
@@ -72,7 +71,7 @@ function ClubRequests() {
         throw new Error(data.message || "Failed to create user in backend");
       }
       
-      return data.data; // Return the created user data
+      return data.data;
     } catch (err) {
       console.error("Error creating user in backend:", err);
       throw err;
@@ -98,21 +97,20 @@ function ClubRequests() {
         userExists = methods && methods.length > 0;
         
         if (userExists) {
-          // If user already exists in Firebase, we don't want to proceed
           setProcessingId(null);
           alert(`Email ${email} is already registered. Please use a different email address.`);
-          return; // Exit the function early
+          return;
         }
       } catch (error) {
         console.log("Error checking email existence:", error);
-        throw error; // Propagate the error
+        throw error;
       }
       
-      // 3. Generate a random password (only if we passed the previous step)
+      // 3. Generate a random password
       const password = generateRandomPassword(12);
       console.log(password);
       
-      // 4. Create Firebase user (we know it doesn't exist)
+      // 4. Create Firebase user
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         console.log("Created Firebase user:", userCredential.user.uid);
@@ -120,14 +118,12 @@ function ClubRequests() {
       } catch (err) {
         console.error("Error creating Firebase user:", err);
         
-        // If the error is about email already in use, show a specific message
         if (err.code === 'auth/email-already-in-use') {
           setProcessingId(null);
           alert(`Email ${email} is already registered. Please use a different email address.`);
-          return; // Exit the function early
+          return;
         } 
         
-        // For any other error, just throw it to be caught by the outer catch block
         throw err;
       }
       
@@ -135,14 +131,13 @@ function ClubRequests() {
       const userData = {
         email: clubData.contactEmail,
         clubName: clubData.clubName,
-        phoneNumber: clubData.contactPhone || "", // Add fallback if phone might be missing
+        phoneNumber: clubData.contactPhone || "",
         clubCategory: clubData.clubCategory,
         firebaseUid: firebaseUid,
-        role: "club_admin", // Assuming club admins have this role
+        role: "club_admin",
         status: "active"
       };
       
-      // Create the user in the backend
       await createUserInBackend(userData);
       console.log("Created user in backend database");
       
@@ -156,7 +151,6 @@ function ClubRequests() {
         message: "Your club has been approved. You can now log in with the credentials below."
       };
       
-      // Using the updated EmailJS send method
       const emailResult = await emailjs.send(
         "service_hozkmh8",
         "template_r75f2dc",
@@ -177,7 +171,6 @@ function ClubRequests() {
       
       if (data.success) {
         console.log("Club approved successfully:", data.data);
-        // Refresh the clubs list after approval
         fetchClubs();
         alert(`Club "${clubName}" approved successfully! Credentials sent to ${email}`);
       } else {
@@ -194,48 +187,69 @@ function ClubRequests() {
   };
 
   if (loading) {
-    return <div className="container mt-5">Loading...</div>;
+    return <div className="container mt-5 text-center"><div className="spinner-border text-primary" role="status"></div></div>;
   }
 
   if (error) {
-    return <div className="container mt-5 text-danger">{error}</div>;
+    return <div className="container mt-5 alert alert-danger">{error}</div>;
   }
 
   return (
-    <div className="container mt-5">
-      <h2 className="mb-4">Pending Club Requests</h2>
-      <div className="row">
-        {clubs.length === 0 ? (
-          <p>No pending requests.</p>
-        ) : (
-          clubs.map((club, index) => (
-            <div className="col-md-4 mb-4" key={club._id || index}>
-              <div className="card shadow-sm h-100">
+    <div className="club-requests-container container mt-5">
+      <h2 className="mb-4 section-title">Pending Club Requests</h2>
+      
+      {clubs.length === 0 ? (
+        <div className="alert alert-info">No pending requests.</div>
+      ) : (
+        <div className="row g-4"> {/* Using g-4 for equal gutters */}
+          {clubs.map((club, index) => (
+            <div className="col-md-4" key={club._id || index}>
+              <div className={`club-card card ${club.status ? 'approved-card' : 'pending-card'}`}>
                 <div className="card-body">
-                  <h5 className="card-title">{club.clubName}</h5>
-                  <p className="card-text"><strong>Email:</strong> {club.contactEmail}</p>
-                  <p className="card-text"><strong>Category:</strong> {club.clubCategory}</p>
-                  <p className="card-text">
-                    <strong>Status:</strong> 
-                    <span className={club.status ? "text-success" : "text-warning"}>
-                      {club.status ? " Approved" : " Pending"}
-                    </span>
-                  </p>
-                  {!club.status && (
+                  <h5 className="card-title club-name">{club.clubName}</h5>
+                  
+                  <div className="club-details">
+                    <div className="info-row">
+                      <span className="info-label">Email:</span>
+                      <span className="info-value">{club.contactEmail}</span>
+                    </div>
+                    <div className="info-row">
+                      <span className="info-label">Category:</span>
+                      <span className="info-value">{club.clubCategory}</span>
+                    </div>
+                    <div className="info-row">
+                      <span className="info-label">Status:</span>
+                      <span className={`status-badge ${club.status ? "approved-badge" : "pending-badge"}`}>
+                        {club.status ? "Approved" : "Pending"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Fixed action area at the bottom - always takes same space whether visible or not */}
+                <div className="card-footer">
+                  {!club.status ? (
                     <button 
-                      className="btn btn-primary mt-2"
+                      className="btn btn-primary w-100"
                       onClick={() => handleApprove(club._id, club.contactEmail, club.clubName)}
                       disabled={processingId === club._id}
                     >
-                      {processingId === club._id ? 'Processing...' : 'Approve Club'}
+                      {processingId === club._id ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                          Processing...
+                        </>
+                      ) : 'Approve Club'}
                     </button>
+                  ) : (
+                    <div className="approved-placeholder"></div>
                   )}
                 </div>
               </div>
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
