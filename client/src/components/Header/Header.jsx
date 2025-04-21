@@ -10,9 +10,8 @@ const Header = () => {
   
   // Navigation items with their routes
   const navItems = [
-    { name: "Home", path: "/" },
     { name: "Club", path: "/clubreg" },
-    { name: "Director", path: "/director" },
+    { name: "Admin", path: "/signin" },
     { name: "Login", path: "/signin" }
   ];
 

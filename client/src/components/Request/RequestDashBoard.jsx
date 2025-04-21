@@ -1,38 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar, momentLocalizer, Views } from "react-big-calendar";
-import moment from "moment";
 import axios from 'axios';
-import emailjs from 'emailjs-com'; // Import EmailJS
-import "react-big-calendar/lib/css/react-big-calendar.css";
+import emailjs from 'emailjs-com';
 import "bootstrap/dist/css/bootstrap.min.css";
-import './RequestDashboard.css';
+// import './RequestDashboard.css';
 
-const localizer = momentLocalizer(moment);
-
-// EmailJS configuration - replace with your actual IDs
+// EmailJS configuration
 const EMAILJS_SERVICE_ID = "service_hhd08wj";
 const EMAILJS_TEMPLATE_ID = "template_ftwfvf9";
 const EMAILJS_USER_ID = "E5kMlbPJH7tAvXFvL";
 
 function BookingDisplay() {
   const [bookings, setBookings] = useState([]);
+  const [filteredBookings, setFilteredBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedBooking, setSelectedBooking] = useState(null);
-  const [showModal, setShowModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
   const [notificationType, setNotificationType] = useState('');
-  const [calendarEvents, setCalendarEvents] = useState([]);
-  const [calendarView, setCalendarView] = useState('month');
+  const [filterStatus, setFilterStatus] = useState('pending'); // Default to 'pending'
   const [newBooking, setNewBooking] = useState({
     title: '',
     start: '',
     end: '',
     bookedBy: '',
     hallname: '',
-    email: '' // Add email field
+    email: ''
   });
 
   const fetchBookings = () => {
@@ -45,25 +38,22 @@ function BookingDisplay() {
           const bookingsData = Array.isArray(response.data) ? response.data : 
                              (response.data.data && Array.isArray(response.data.data) ? 
                               response.data.data : []);
-          setBookings(bookingsData);
           
-          // Format events for the calendar
-          const formattedEvents = bookingsData.map(booking => ({
-            id: booking._id || booking.id,
-            title: booking.title || booking.name || 'Unnamed Booking',
-            start: new Date(booking.start || booking.date),
-            end: booking.end ? new Date(booking.end) : new Date(new Date(booking.start || booking.date).getTime() + 3600000),
-            bookedBy: booking.bookedBy || booking.customer || 'Unknown',
-            hallname: booking.hallname || booking.hall || booking.location || 'N/A',
-            status: booking.status || (booking.isConfirmed ? 'confirmed' : 'pending'),
-            email: booking.email || '', // Include email for notifications
-            resource: booking // Store the entire booking object for reference
-          }));
+          // Filter out past bookings
+          const currentDate = new Date();
+          const futureBookings = bookingsData.filter(booking => {
+            const bookingDate = new Date(booking.start || booking.date);
+            return bookingDate >= currentDate;
+          });
           
-          setCalendarEvents(formattedEvents);
+          setBookings(futureBookings);
+          
+          // Apply filter if set
+          applyFilter(futureBookings, filterStatus);
         } else {
           setError("Received data is not in the expected format");
           setBookings([]);
+          setFilteredBookings([]);
         }
         setLoading(false);
       })
@@ -72,6 +62,25 @@ function BookingDisplay() {
         setError("Failed to fetch bookings");
         setLoading(false);
       });
+  };
+
+  const applyFilter = (bookingsData, status) => {
+    if (status === 'all') {
+      setFilteredBookings(bookingsData);
+    } else {
+      let filtered;
+      if (status === 'approved') {
+        filtered = bookingsData.filter(booking => 
+          booking.status === 'approved' || booking.status === 'confirmed' || booking.isConfirmed === true);
+      } else if (status === 'rejected') {
+        filtered = bookingsData.filter(booking => booking.status === 'rejected');
+      } else if (status === 'pending') {
+        filtered = bookingsData.filter(booking => 
+          !booking.status || booking.status === 'pending' || 
+          (booking.status !== 'approved' && booking.status !== 'confirmed' && booking.status !== 'rejected' && !booking.isConfirmed));
+      }
+      setFilteredBookings(filtered);
+    }
   };
 
   useEffect(() => {
@@ -91,26 +100,9 @@ function BookingDisplay() {
     };
   }, []);
 
-  const handleView = (booking) => {
-    setSelectedBooking(booking);
-    setShowModal(true);
-  };
-
-  const handleCalendarEventClick = (event) => {
-    // When calendar event is clicked, find the associated booking and show modal
-    const booking = event.resource;
-    if (booking) {
-      setSelectedBooking(booking);
-      setShowModal(true);
-      // Switch calendar view to day view centered on this event
-      setCalendarView('day');
-    }
-  };
-
-  const handleClose = () => {
-    setShowModal(false);
-    setSelectedBooking(null);
-  };
+  useEffect(() => {
+    applyFilter(bookings, filterStatus);
+  }, [filterStatus, bookings]);
 
   const handleCloseCreateModal = () => {
     setShowCreateModal(false);
@@ -171,53 +163,6 @@ function BookingDisplay() {
       });
   };
 
-  // Function to send notification email
-  // const sendNotificationEmail = (booking, status) => {
-  //   if (!booking.email) {
-  //     console.warn("No email address provided for booking notification");
-  //     return Promise.resolve();
-  //   }
-
-  //   const startDateTime = new Date(booking.start || booking.date);
-  //   const endDateTime = booking.end ? new Date(booking.end) : new Date(startDateTime.getTime() + 3600000);
-    
-  //   const templateParams = {
-  //     to_name: booking.bookedBy || booking.customer || "Valued Customer",
-  //     to_email: booking.email,
-  //     booking_title: booking.title || booking.name || "Your Booking",
-  //     booking_date: startDateTime.toLocaleDateString('en-US', { 
-  //       year: 'numeric', month: 'long', day: 'numeric'
-  //     }),
-  //     booking_time: `${startDateTime.toLocaleTimeString('en-US', { 
-  //       hour: '2-digit', minute: '2-digit'
-  //     })} - ${endDateTime.toLocaleTimeString('en-US', { 
-  //       hour: '2-digit', minute: '2-digit'
-  //     })}`,
-  //     booking_location: booking.hallname || booking.hall || booking.location || "N/A",
-  //     booking_status: status === 'confirm' ? 'APPROVED' : 'REJECTED',
-  //     rejection_reason: status === 'reject' ? "The requested slot is unavailable." : "",
-  //     admin_message: status === 'confirm' 
-  //       ? "Your booking has been approved. We look forward to hosting your event."
-  //       : "We're sorry, but your booking request has been rejected. Please contact us for more information."
-  //   };
-    
-  //   console.log("Sending email with params:", templateParams);
-    
-  //   return emailjs.send(
-  //     EMAILJS_SERVICE_ID, 
-  //     EMAILJS_TEMPLATE_ID, 
-  //     templateParams
-  //   )
-  //   .then(response => {
-  //     console.log('Email sent successfully:', response);
-  //     return response;
-  //   })
-  //   .catch(err => {
-  //     console.error('Failed to send email:', err);
-  //     throw err;
-  //   });
-  // };
-
   const sendNotificationEmail = (booking, status) => {
     if (!booking.email) {
       console.warn("No email address provided for booking notification");
@@ -230,9 +175,9 @@ function BookingDisplay() {
       : new Date(startDateTime.getTime() + 3600000); // default to 1 hour later
   
     const templateParams = {
-      email: booking.email, // ✅ Matches {{email}} in your EmailJS template
-      name: booking.bookedBy || booking.customer || "Valued Customer", // ✅ Matches {{name}} in EmailJS
-      title: status === 'confirm' ? 'APPROVED' : 'REJECTED', // ✅ Matches {{title}} in subject line
+      email: booking.email,
+      name: booking.bookedBy || booking.customer || "Valued Customer",
+      title: status === 'confirm' ? 'APPROVED' : 'REJECTED',
       message:
         status === 'confirm'
           ? "Your booking has been approved. We look forward to hosting your event."
@@ -266,7 +211,6 @@ function BookingDisplay() {
         throw err;
       });
   };
-  
 
   const handleStatusUpdate = (bookingId, action) => {
     // Find the booking object to get email info
@@ -298,7 +242,6 @@ function BookingDisplay() {
       })
       .then(() => {
         fetchBookings(); // Refresh the bookings data
-        handleClose(); // Close the modal
       })
       .catch(err => {
         console.error('Error updating booking status:', err);
@@ -313,35 +256,6 @@ function BookingDisplay() {
       return <span className="badge bg-success">Confirmed</span>;
     } else {
       return <span className="badge bg-warning text-dark">Pending</span>;
-    }
-  };
-  
-  // Event styling with colors based on status
-  const eventStyleGetter = (event) => {
-    if (event.status === 'rejected') {
-      return {
-        style: {
-          backgroundColor: 'var(--primary-light)',
-          borderColor: 'var(--primary)',
-          borderLeft: '3px solid var(--primary)'
-        }
-      };
-    } else if (event.status === 'approved' || event.status === 'confirmed') {
-      return {
-        style: {
-          backgroundColor: 'var(--primary)',
-          borderColor: 'var(--primary-light)',
-          color: 'var(--white)'
-        }
-      };
-    } else {
-      return {
-        style: {
-          backgroundColor: 'var(--medium-gray)',
-          borderColor: 'var(--dark-gray)',
-          color: 'var(--white)'
-        }
-      };
     }
   };
 
@@ -368,6 +282,7 @@ function BookingDisplay() {
       </div>
     );
   }
+
   return (
     <div className="booking-system min-vh-100" style={{ background: 'var(--background-light)' }}>
       {/* Notification toast */}
@@ -404,7 +319,7 @@ function BookingDisplay() {
         </div>
       )}
 
-      {/* Header with New Booking Button */}
+      {/* Header with New Booking Button and Filter Tabs */}
       <div className="container-fluid py-4 px-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h4 className="fw-bold" style={{ color: 'var(--primary)' }}>Booking Management Dashboard</h4>
@@ -412,7 +327,8 @@ function BookingDisplay() {
             className="btn" 
             style={{ 
               background: 'var(--primary)', 
-              color: 'var(--white)' 
+              color: 'var(--white)',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
             }} 
             onClick={() => setShowCreateModal(true)}
           >
@@ -421,18 +337,86 @@ function BookingDisplay() {
           </button>
         </div>
 
-        {/* Clean Table Layout */}
-        <div className="card border-0 shadow-sm">
+        {/* Filter Navigation Pills */}
+        <div className="mb-4">
+          <div className="d-flex gap-2">
+            <button 
+              className={`btn px-4 py-2 ${filterStatus === 'all' ? 'active' : ''}`}
+              style={{
+                background: filterStatus === 'all' ? 'var(--primary)' : 'var(--white)',
+                color: filterStatus === 'all' ? 'var(--white)' : 'var(--dark-gray)',
+                fontWeight: filterStatus === 'all' ? '600' : '400',
+                border: filterStatus === 'all' ? 'none' : '1px solid var(--medium-gray)',
+                borderRadius: '4px',
+                boxShadow: filterStatus === 'all' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
+              }}
+              onClick={() => setFilterStatus('all')}
+            >
+              <i className="bi bi-grid-3x3-gap me-2"></i>All Requests
+            </button>
+            <button 
+              className={`btn px-4 py-2 ${filterStatus === 'pending' ? 'active' : ''}`}
+              style={{
+                background: filterStatus === 'pending' ? 'var(--primary)' : 'var(--white)',
+                color: filterStatus === 'pending' ? 'var(--white)' : 'var(--dark-gray)',
+                fontWeight: filterStatus === 'pending' ? '600' : '400',
+                border: filterStatus === 'pending' ? 'none' : '1px solid var(--medium-gray)',
+                borderRadius: '4px',
+                boxShadow: filterStatus === 'pending' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
+              }}
+              onClick={() => setFilterStatus('pending')}
+            >
+              <i className="bi bi-clock-history me-2"></i>Pending
+            </button>
+            <button 
+              className={`btn px-4 py-2 ${filterStatus === 'approved' ? 'active' : ''}`}
+              style={{
+                background: filterStatus === 'approved' ? 'var(--primary)' : 'var(--white)',
+                color: filterStatus === 'approved' ? 'var(--white)' : 'var(--dark-gray)',
+                fontWeight: filterStatus === 'approved' ? '600' : '400',
+                border: filterStatus === 'approved' ? 'none' : '1px solid var(--medium-gray)',
+                borderRadius: '4px',
+                boxShadow: filterStatus === 'approved' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
+              }}
+              onClick={() => setFilterStatus('approved')}
+            >
+              <i className="bi bi-check-circle me-2"></i>Approved
+            </button>
+            <button 
+              className={`btn px-4 py-2 ${filterStatus === 'rejected' ? 'active' : ''}`}
+              style={{
+                background: filterStatus === 'rejected' ? 'var(--primary)' : 'var(--white)',
+                color: filterStatus === 'rejected' ? 'var(--white)' : 'var(--dark-gray)',
+                fontWeight: filterStatus === 'rejected' ? '600' : '400',
+                border: filterStatus === 'rejected' ? 'none' : '1px solid var(--medium-gray)',
+                borderRadius: '4px',
+                boxShadow: filterStatus === 'rejected' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
+              }}
+              onClick={() => setFilterStatus('rejected')}
+            >
+              <i className="bi bi-x-circle me-2"></i>Rejected
+            </button>
+          </div>
+        </div>
+
+        {/* Requests Table */}
+        <div className="card border-0 shadow">
           <div className="card-body p-0">
-            {bookings.length === 0 ? (
-              <div className="p-4 text-center">
+            {filteredBookings.length === 0 ? (
+              <div className="p-5 text-center">
                 <i className="bi bi-calendar-x text-muted display-4 mb-3"></i>
-                <p className="text-muted">No bookings found. Create a new booking to get started.</p>
+                <p className="text-muted mb-4">
+                  {filterStatus === 'all' 
+                    ? 'No bookings found. Create a new booking to get started.' 
+                    : `No ${filterStatus} bookings found.`}
+                </p>
                 <button 
                   className="btn" 
                   style={{ 
                     background: 'var(--primary)', 
-                    color: 'var(--white)' 
+                    color: 'var(--white)',
+                    padding: '10px 20px',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                   }} 
                   onClick={() => setShowCreateModal(true)}
                 >
@@ -442,26 +426,32 @@ function BookingDisplay() {
               </div>
             ) : (
               <div className="table-responsive">
-                <table className="table table-hover align-middle mb-0">
+                <table className="table mb-0">
                   <thead style={{ background: 'var(--background-light)' }}>
                     <tr>
-                      <th scope="col" className="border-0 ps-4">#</th>
-                      <th scope="col" className="border-0">Title</th>
-                      <th scope="col" className="border-0">Booked By</th>
-                      <th scope="col" className="border-0">Location</th>
-                      <th scope="col" className="border-0">Date & Time</th>
-                      <th scope="col" className="border-0">Status</th>
-                      <th scope="col" className="border-0 text-end pe-4">Actions</th>
+                      <th scope="col" className="border-0 ps-4 py-3">#</th>
+                      <th scope="col" className="border-0 py-3">Title</th>
+                      <th scope="col" className="border-0 py-3">Booked By</th>
+                      <th scope="col" className="border-0 py-3">Location</th>
+                      <th scope="col" className="border-0 py-3">Date & Time</th>
+                      <th scope="col" className="border-0 py-3">Status</th>
+                      <th scope="col" className="border-0 text-end pe-4 py-3">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {bookings.map((booking, index) => (
-                      <tr key={booking._id || booking.id || index}>
-                        <th scope="row" className="ps-4">{index + 1}</th>
-                        <td className="fw-medium">{booking.title || booking.name || 'Unnamed Booking'}</td>
-                        <td>{booking.bookedBy || booking.customer || 'Unknown'}</td>
-                        <td>{booking.hallname || booking.hall || booking.location || 'N/A'}</td>
-                        <td>
+                    {filteredBookings.map((booking, index) => (
+                      <tr key={booking._id || booking.id || index} style={{ 
+                        borderLeft: booking.status === 'approved' || booking.isConfirmed ? 
+                          '4px solid var(--primary)' : 
+                          booking.status === 'rejected' ? 
+                            '4px solid var(--primary-light)' : 
+                            '4px solid var(--medium-gray)'
+                      }}>
+                        <th scope="row" className="ps-4 py-3">{index + 1}</th>
+                        <td className="fw-medium py-3">{booking.title || booking.name || 'Unnamed Booking'}</td>
+                        <td className="py-3">{booking.bookedBy || booking.customer || 'Unknown'}</td>
+                        <td className="py-3">{booking.hallname || booking.hall || booking.location || 'N/A'}</td>
+                        <td className="py-3">
                           <div>
                             {new Date(booking.start || booking.date).toLocaleDateString('en-US', { 
                               year: 'numeric', month: 'short', day: 'numeric'
@@ -475,20 +465,57 @@ function BookingDisplay() {
                             }) : 'N/A'}
                           </div>
                         </td>
-                        <td>
-                          {getStatusBadge(booking)}
+                        <td className="py-3">
+                          <span className="badge" style={{
+                            background: booking.status === 'rejected' ? 'red' : 
+                                      (booking.status === 'approved' || booking.isConfirmed) ? 'green' : 
+                                      'var(--medium-gray)',
+                            color: 'var(--white)',
+                            padding: '6px 12px',
+                            fontSize: '0.85rem'
+                          }}>
+                            {booking.status === 'rejected' ? 'Rejected' : 
+                             (booking.status === 'approved' || booking.isConfirmed) ? 'Confirmed' : 'Pending'}
+                          </span>
                         </td>
-                        <td className="text-end pe-4">
-                          <button 
-                            className="btn btn-sm" 
-                            style={{ 
-                              borderColor: 'var(--primary)', 
-                              color: 'var(--primary)' 
-                            }}
-                            onClick={() => handleView(booking)}
-                          >
-                            <i className="bi bi-eye me-1"></i> View
-                          </button>
+                        <td className="text-end pe-4 py-3">
+                          <div className="d-flex justify-content-end gap-2">
+                            {/* Show Approve button for pending and rejected bookings */}
+                            {(booking.status !== 'approved' && booking.status !== 'confirmed' && !booking.isConfirmed) && (
+                              <button 
+                                className="btn btn-sm" 
+                                style={{ 
+                                  background: 'green', 
+                                  color: 'var(--white)',
+                                  padding: '8px 16px',
+                                  boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                                  fontWeight: '500'
+                                }}
+                                onClick={() => handleStatusUpdate(booking._id || booking.id, 'confirm')}
+                                title="Approve booking"
+                              >
+                                <i className="bi bi-check-circle me-1"></i> Approve
+                              </button>
+                            )}
+                            
+                            {/* Show Reject button for pending and approved bookings */}
+                            {(booking.status !== 'rejected') && (
+                              <button 
+                                className="btn btn-sm" 
+                                style={{ 
+                                  background: '#CD0000', 
+                                  color: 'white',
+                                  border: '1px solid var(--primary-light)',
+                                  padding: '8px 16px',
+                                  fontWeight: '500'
+                                }}
+                                onClick={() => handleStatusUpdate(booking._id || booking.id, 'reject')}
+                                title="Reject booking"
+                              >
+                                <i className="bi bi-x-circle me-1"></i> Reject
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -534,6 +561,18 @@ function BookingDisplay() {
                       id="bookedBy" 
                       name="bookedBy"
                       value={newBooking.bookedBy}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label htmlFor="email" className="form-label">Email</label>
+                    <input 
+                      type="email" 
+                      className="form-control" 
+                      id="email" 
+                      name="email"
+                      value={newBooking.email}
                       onChange={handleInputChange}
                       required
                     />
@@ -585,7 +624,12 @@ function BookingDisplay() {
                 <div className="modal-footer" style={{ background: 'var(--background-light)' }}>
                   <button 
                     type="button" 
-                    className="btn btn-outline-secondary" 
+                    className="btn" 
+                    style={{
+                      background: 'transparent',
+                      color: 'var(--dark-gray)',
+                      border: '1px solid var(--medium-gray)'
+                    }}
                     onClick={handleCloseCreateModal}
                   >
                     Cancel
@@ -595,7 +639,8 @@ function BookingDisplay() {
                     className="btn" 
                     style={{ 
                       background: 'var(--primary)', 
-                      color: 'var(--white)' 
+                      color: 'var(--white)',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                     }}
                   >
                     <i className="bi bi-save me-1"></i>
@@ -603,154 +648,6 @@ function BookingDisplay() {
                   </button>
                 </div>
               </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Improved Booking Details Modal with Calendar */}
-      {showModal && selectedBooking && (
-        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-xl modal-dialog-centered">
-            <div className="modal-content border-0 shadow">
-              <div className="modal-header" style={{ background: 'var(--primary)', color: 'var(--white)' }}>
-                <h5 className="modal-title">
-                  <i className="bi bi-info-circle me-2"></i>
-                  Booking Details
-                </h5>
-                <button type="button" className="btn-close btn-close-white" onClick={handleClose}></button>
-              </div>
-              <div className="modal-body p-3">
-                <div className="row">
-                  {/* Booking Information Column */}
-                  <div className="col-md-4">
-                    <div className="card shadow-sm h-100 border-0">
-                      <div className="card-header py-3" style={{ background: 'var(--background-light)' }}>
-                        <h6 className="mb-0 fw-bold">
-                          <i className="bi bi-file-text me-2" style={{ color: 'var(--primary)' }}></i>
-                          Event Information
-                        </h6>
-                      </div>
-                      <div className="card-body">
-                        <div className="mb-3">
-                          <p className="text-muted small mb-1">Event Title</p>
-                          <h5 className="fw-bold">{selectedBooking.title || selectedBooking.name}</h5>
-                        </div>
-                        <div className="mb-3">
-                          <p className="text-muted small mb-1">Organizer</p>
-                          <h6>{selectedBooking.bookedBy || selectedBooking.customer}</h6>
-                        </div>
-                        <div className="mb-3">
-                          <p className="text-muted small mb-1">Location</p>
-                          <h6>{selectedBooking.hallname || selectedBooking.hall || selectedBooking.location || 'N/A'}</h6>
-                        </div>
-                        <div className="row mb-3">
-                          <div className="col-6">
-                            <p className="text-muted small mb-1">Start Time</p>
-                            <p>{new Date(selectedBooking.start || selectedBooking.date).toLocaleString([], {dateStyle: 'short', timeStyle: 'short'})}</p>
-                          </div>
-                          <div className="col-6">
-                            <p className="text-muted small mb-1">End Time</p>
-                            <p>{selectedBooking.end ? new Date(selectedBooking.end).toLocaleString([], {dateStyle: 'short', timeStyle: 'short'}) : 'N/A'}</p>
-                          </div>
-                        </div>
-                        <div className="mb-3">
-                          <p className="text-muted small mb-1">Status</p>
-                          {getStatusBadge(selectedBooking)}
-                        </div>
-                        <div className="d-flex gap-2 mb-2">
-                          <button 
-                            className="btn btn-sm" 
-                            style={{ background: 'var(--primary)', color: 'var(--white)' }}
-                            onClick={() => handleStatusUpdate(selectedBooking._id, 'confirm')}
-                          >
-                            <i className="bi bi-check-circle me-1"></i> Confirm
-                          </button>
-                          <button 
-                            className="btn btn-sm btn-outline-secondary"
-                            onClick={() => handleStatusUpdate(selectedBooking._id, 'reject')}
-                          >
-                            <i className="bi bi-x-circle me-1"></i> Reject
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Calendar Column */}
-                  <div className="col-md-8">
-                    <div className="card shadow-sm h-100 border-0">
-                      <div className="card-header py-3" style={{ background: 'var(--background-light)' }}>
-                        <div className="d-flex justify-content-between align-items-center">
-                          <h6 className="mb-0 fw-bold">
-                            <i className="bi bi-calendar3 me-2" style={{ color: 'var(--primary)' }}></i>
-                            Schedule View
-                          </h6>
-                          <div className="btn-group btn-group-sm">
-                            <button 
-                              type="button" 
-                              className={`btn ${calendarView === 'month' ? 'btn-primary' : 'btn-outline-secondary'}`}
-                              style={calendarView === 'month' ? { background: 'var(--primary)', borderColor: 'var(--primary)' } : {}}
-                              onClick={() => setCalendarView('month')}
-                            >
-                              Month
-                            </button>
-                            <button 
-                              type="button" 
-                              className={`btn ${calendarView === 'week' ? 'btn-primary' : 'btn-outline-secondary'}`}
-                              style={calendarView === 'week' ? { background: 'var(--primary)', borderColor: 'var(--primary)' } : {}}
-                              onClick={() => setCalendarView('week')}
-                            >
-                              Week
-                            </button>
-                            <button 
-                              type="button" 
-                              className={`btn ${calendarView === 'day' ? 'btn-primary' : 'btn-outline-secondary'}`}
-                              style={calendarView === 'day' ? { background: 'var(--primary)', borderColor: 'var(--primary)' } : {}}
-                              onClick={() => setCalendarView('day')}
-                            >
-                              Day
-                            </button>
-                            <button 
-                              type="button" 
-                              className={`btn ${calendarView === 'agenda' ? 'btn-primary' : 'btn-outline-secondary'}`}
-                              style={calendarView === 'agenda' ? { background: 'var(--primary)', borderColor: 'var(--primary)' } : {}}
-                              onClick={() => setCalendarView('agenda')}
-                            >
-                              Timeline
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="card-body p-2">
-                        <Calendar
-                          localizer={localizer}
-                          events={calendarEvents}
-                          startAccessor="start"
-                          endAccessor="end"
-                          style={{ height: 400 }}
-                          view={calendarView}
-                          views={['month', 'week', 'day', 'agenda']}
-                          defaultDate={new Date(selectedBooking.start || selectedBooking.date)}
-                          eventPropGetter={eventStyleGetter}
-                          onSelectEvent={handleCalendarEventClick}
-                          toolbar={true}
-                          popup
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="modal-footer" style={{ background: 'var(--background-light)' }}>
-                <button 
-                  className="btn btn-outline-secondary" 
-                  onClick={handleClose}
-                >
-                  <i className="bi bi-x me-1"></i>
-                  Close
-                </button>
-              </div>
             </div>
           </div>
         </div>

@@ -8,6 +8,7 @@ import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import WelcomeSection from '../Welcome/WelcomeSection';
 import ClubRequests from '../Auth/ClubRequests';
+import DirectorSettings from './DirectorSettings';
 import BookingCalendar from '../Calender/BookingCalender';
 import RequestDashboard from '../Request/RequestDashBoard';
 import { FaUser, FaCog, FaSignOutAlt, FaBars } from 'react-icons/fa';
@@ -146,7 +147,7 @@ function DirectorDashboard() {
     try {
       await signOut(auth);
       setDropdownOpen(false);
-      sessionStorage.clear();
+      // The navigation to '/' will happen automatically due to the auth state change
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -167,7 +168,7 @@ function DirectorDashboard() {
       case 'clubRequests':
         return <ClubRequests />;
       case 'settings':
-        return <SettingsComponent />;
+        return <DirectorSettings />;
       case 'dashboard':
       default:
         return <WelcomeSection />;
@@ -195,7 +196,7 @@ function DirectorDashboard() {
               <FaBars />
             </button>
             <div className="director-brand">
-              <h3>Director Dashboard</h3>
+              <h3>Admin Dashboard</h3>
             </div>
           </div>
           <div className="director-navbar-right">
