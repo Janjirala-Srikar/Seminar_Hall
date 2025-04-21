@@ -163,53 +163,53 @@ function BookingDisplay() {
       });
   };
 
+
   const sendNotificationEmail = (booking, status) => {
     if (!booking.email) {
       console.warn("No email address provided for booking notification");
       return Promise.resolve();
     }
   
-    const startDateTime = new Date(booking.start || booking.date);
-    const endDateTime = booking.end
-      ? new Date(booking.end)
-      : new Date(startDateTime.getTime() + 3600000); // default to 1 hour later
-  
+    const startDateTime = new Date(booking.start);
+    const endDateTime = booking.end ? new Date(booking.end) : new Date(startDateTime.getTime() + 3600000);
+    
+    // These parameter names need to match exactly what your EmailJS template expects
     const templateParams = {
-      email: booking.email,
-      name: booking.bookedBy || booking.customer || "Valued Customer",
-      title: status === 'confirm' ? 'APPROVED' : 'REJECTED',
-      message:
-        status === 'confirm'
-          ? "Your booking has been approved. We look forward to hosting your event."
-          : "We're sorry, but your booking request has been rejected. Please contact us for more information.",
-      booking_date: startDateTime.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
+
+      to_email: booking.email,
+      to_name: booking.bookedBy,
+      subject: status === 'confirm' ? 'Booking Approved: ' + booking.title : 'Booking Rejected: ' + booking.title,
+      booking_title: booking.title,
+      booking_date: startDateTime.toLocaleDateString('en-US', { 
+        year: 'numeric', month: 'long', day: 'numeric' 
       }),
-      booking_time: `${startDateTime.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-      })} - ${endDateTime.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
+      booking_time: `${startDateTime.toLocaleTimeString('en-US', { 
+        hour: '2-digit', minute: '2-digit' 
+      })} - ${endDateTime.toLocaleTimeString('en-US', { 
+        hour: '2-digit', minute: '2-digit' 
       })}`,
-      booking_location: booking.hallname || booking.hall || booking.location || "N/A",
-      rejection_reason: status === 'reject' ? "The requested slot is unavailable." : "",
+      booking_location: booking.hall,
+      booking_status: status === 'confirm' ? 'APPROVED' : 'REJECTED',
+      message: status === 'confirm' 
+        ? "Your booking has been approved. We look forward to hosting your event."
+        : "We're sorry, but your booking request has been rejected. Please contact us for more information."
     };
-  
+    
     console.log("Sending email with params:", templateParams);
-  
-    return emailjs
-      .send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
-      .then((response) => {
-        console.log("Email sent successfully:", response);
-        return response;
-      })
-      .catch((err) => {
-        console.error("Failed to send email:", err);
-        throw err;
-      });
+    
+    return emailjs.send(
+      EMAILJS_SERVICE_ID, 
+      EMAILJS_TEMPLATE_ID, 
+      templateParams
+    )
+    .then(response => {
+      console.log('Email sent successfully:', response);
+      return response;
+    })
+    .catch(err => {
+      console.error('Failed to send email:', err);
+      throw err;
+    });
   };
 
   const handleStatusUpdate = (bookingId, action) => {
