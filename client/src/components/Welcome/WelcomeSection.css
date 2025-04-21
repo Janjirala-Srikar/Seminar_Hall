@@ -28,7 +28,6 @@
   .welcome-header {
     display: flex;
     padding: 2.5rem;
-    background: linear-gradient(to right, var(--primary-light), #ffffff);
     position: relative;
   }
   
@@ -52,11 +51,15 @@
   
   .welcome-date {
     margin-top: 1.5rem;
-    color: var(--primary);
+    color: black;
     font-size: 0.875rem;
     font-weight: 500;
   }
-  
+  .border{
+    height: 0;
+    width: 3rem;
+    border-style: double;
+  }
   .welcome-graphics {
     flex: 0 0 30%;
     display: flex;
@@ -67,7 +70,7 @@
   .welcome-illustration {
     width: 180px;
     height: 180px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%234361ee' opacity='0.2' d='M50 15.6L15.6 50 50 84.4 84.4 50z'/%3E%3Cpath fill='%234361ee' d='M50 18.8L18.8 50 50 81.2 81.2 50z'/%3E%3Ccircle fill='white' cx='50' cy='50' r='15'/%3E%3Ccircle fill='%234361ee' cx='50' cy='50' r='10'/%3E%3C/svg%3E");
+    background-image: url("https://cdn.brandfetch.io/idD_5AfN3y/w/329/h/303/theme/light/logo.png?c=1dxbfHSJFAPEGdCLU4o5B");
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
@@ -114,11 +117,12 @@
     justify-content: center;
     width: 40px;
     height: 40px;
-    background-color: var(--primary-light);
+    background-color: white;
     border-radius: 12px;
     margin-right: 1rem;
     color: var(--primary);
-    font-size: 1.25rem;
+    font-size: 1.2rem;
+    border-style: solid ;
   }
   
   .action-content {
@@ -182,7 +186,8 @@
   }
   
   .metric-card:hover {
-    background-color: var(--primary-light);
+    border: #82001A solid 1px;
+    transform: translateY(-3px);
   }
   
   .metric-value {
