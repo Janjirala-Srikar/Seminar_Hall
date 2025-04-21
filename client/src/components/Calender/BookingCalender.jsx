@@ -82,43 +82,61 @@ const BookingCalendar = () => {
   const handleDateClick = useCallback((date) => {
     setDate(date);
     setView("day");
-  }, []);
+    
+    // Remove any existing temporary events when switching views
+    const filteredEvts = events.filter(event => !event.isTemporary);
+    setEvents(filteredEvts);
+    setSelectedSlot(null);
+  }, [events]);
 
   const handleHallChange = (e) => {
     setSelectedHall(e.target.value);
   };
 
   const handleSlotSelection = (slotInfo) => {
-    const startTime = moment(slotInfo.start);
-    setView("day");
-    
-    const roundedStart = moment(startTime).startOf('hour');
-    let roundedEnd = moment(roundedStart).add(3, 'hours');
-    
-    const newSelection = {
-      start: roundedStart.toDate(),
-      end: roundedEnd.toDate(),
-      title: "Selected Slot",
-      isSelected: true,
-      isTemporary: true,
-      hall: selectedHall === "All Halls" ? "" : selectedHall
-    };
+    // Only create a slot if the user explicitly selects a time in day or week view
+    // Don't auto-create slots when clicking on dates from month view
+    if (view === "day" || view === "week") {
+      const startTime = moment(slotInfo.start);
+      
+      const roundedStart = moment(startTime).startOf('hour');
+      let roundedEnd = moment(roundedStart).add(3, 'hours');
+      
+      const newSelection = {
+        start: roundedStart.toDate(),
+        end: roundedEnd.toDate(),
+        title: "Selected Slot",
+        isSelected: true,
+        isTemporary: true,
+        hall: selectedHall === "All Halls" ? "" : selectedHall
+      };
 
-    const filteredEvts = events.filter(event => !event.isTemporary);
-    setEvents([...filteredEvts, newSelection]);
-    
-    setSelectedSlot({
-      start: roundedStart.toDate(),
-      end: roundedEnd.toDate()
-    });
+      // Remove any existing temporary events
+      const filteredEvts = events.filter(event => !event.isTemporary);
+      setEvents([...filteredEvts, newSelection]);
+      
+      setSelectedSlot({
+        start: roundedStart.toDate(),
+        end: roundedEnd.toDate()
+      });
 
-    // Reset form data for new booking with currently selected hall
-    setFormData({
-      title: "New Booking",
-      bookedBy: "",
-      description: "",
-      hall: selectedHall === "All Halls" ? "" : selectedHall
-    });
+      // Reset form data for new booking with currently selected hall
+      setFormData({
+        title: "New Booking",
+        bookedBy: "",
+        description: "",
+        hall: selectedHall === "All Halls" ? "" : selectedHall
+      });
+    } else {
+      // If coming from month view, just switch to day view without creating a slot
+      setDate(slotInfo.start);
+      setView("day");
+      
+      // Clean up any existing temporary slots
+      const filteredEvts = events.filter(event => !event.isTemporary);
+      setEvents(filteredEvts);
+      setSelectedSlot(null);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -184,7 +202,7 @@ const BookingCalendar = () => {
           hall: formData.hall,
           email: userEmail
         };
-        console.log(bookingData);
+        
         // Send booking to backend
         const response = await axios.post('http://localhost:5000/api/bookings/book', bookingData);
         
@@ -201,11 +219,18 @@ const BookingCalendar = () => {
           email: response.data.email
         };
 
+        // Remove all temporary events
         const filteredEvts = events.filter(event => !event.isTemporary);
         setEvents([...filteredEvts, newEvent]);
         
         // Reset selected slot
         setSelectedSlot(null);
+        
+        // Refresh bookings from server to ensure we have latest data
+        fetchBookings();
+        
+        // Reset view to month after booking is confirmed
+        setView("month");
         
         // Show success message
         alert("Booking confirmed successfully!");
