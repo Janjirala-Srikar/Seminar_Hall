@@ -119,7 +119,7 @@ body {
 /* Main content */
 .director-main-content {
   flex: 1;
-  padding: 28px;
+  /* padding: 28px; */
   margin-left: 250px;
   transition: all var(--transition-normal);
   width: calc(100% - 250px);

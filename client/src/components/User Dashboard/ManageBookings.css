@@ -1,0 +1,169 @@
+/* ManageBookings.css - Improved clean and neat style */
+
+:root {
+    --primary: #82001A;
+    --primary-light: #B22334;
+    --dark-gray: #3B3434;
+    --medium-gray: #495057;
+    --light-gray: #869791;
+    --darker-gray: #1A1A1A;
+    --gray: #4F4F4F;
+    --light-medium-gray: #909090;
+    --very-light-gray: #D6D6D6;
+    --background-light: #F5F5F7;
+    --white: #FFFFFF;
+  }
+  
+  /* Container and general layout */
+  .bookings-container {
+    padding: 2rem 1.5rem;
+    background-color: var(--background-light);
+    min-height: 100vh;
+  }
+  
+  .bookings-header {
+    color: var(--primary);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--primary-light);
+    padding-bottom: 0.5rem;
+    display: inline-block;
+  }
+  
+  /* Table styles */
+  .table-container {
+    background-color: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+  
+  .booking-table {
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+  }
+  
+  .booking-table thead th {
+    background-color: var(--primary);
+    color: var(--white);
+    font-weight: 500;
+    padding: 1rem;
+    border: none;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+  }
+  
+  .booking-table tbody tr {
+    transition: background-color 0.15s ease;
+  }
+  
+  .booking-table tbody tr:nth-child(even) {
+    background-color: var(--background-light);
+  }
+  
+  .booking-table tbody tr:hover {
+    background-color: rgba(130, 0, 26, 0.05);
+  }
+  
+  .booking-table td {
+    padding: 1rem;
+    vertical-align: middle;
+    color: var(--medium-gray);
+    border-bottom: 1px solid var(--very-light-gray);
+  }
+  
+  .booking-title {
+    font-weight: 600;
+    color: var(--dark-gray);
+  }
+  
+  /* Status badges */
+  .status-badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-align: center;
+    min-width: 90px;
+  }
+  
+  .status-approved {
+    background-color: rgba(40, 167, 69, 0.15);
+    color: #1e7e34;
+  }
+  
+  .status-rejected {
+    background-color: rgba(220, 53, 69, 0.15);
+    color: #a71d2a;
+  }
+  
+  .status-pending {
+    background-color: rgba(255, 193, 7, 0.15);
+    color: #d39e00;
+  }
+  
+  /* Loading spinner */
+  .custom-spinner {
+    color: var(--primary);
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  
+  /* Error message */
+  .error-message {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #a71d2a;
+    border: 1px solid rgba(220, 53, 69, 0.2);
+    border-radius: 4px;
+  }
+  
+  /* No bookings state */
+  .no-bookings {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    background-color: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  }
+  
+  .no-bookings-icon {
+    font-size: 2.5rem;
+    color: var(--primary-light);
+    margin-bottom: 1rem;
+    opacity: 0.7;
+  }
+  
+  .no-bookings h4 {
+    color: var(--dark-gray);
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+  }
+  
+  .no-bookings p {
+    color: var(--medium-gray);
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .bookings-container {
+      padding: 1rem 0.5rem;
+    }
+    
+    .booking-table td,
+    .booking-table th {
+      padding: 0.75rem;
+      font-size: 0.9rem;
+    }
+    
+    .status-badge {
+      min-width: 70px;
+      padding: 0.25rem 0.5rem;
+    }
+  }

@@ -6,6 +6,7 @@ import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import BookingCalender from '../Calender/BookingCalender'
+import ManageBookings from './ManageBookings'
 import { FaHome, FaCalendarCheck, FaListAlt, FaCog, FaSignOutAlt, FaUser, FaBars } from 'react-icons/fa';
 import UserSettings from './UserSettings';
 
@@ -165,7 +166,7 @@ function Dashboard() {
       case 'bookHall':
         return <BookingCalender />; 
       case 'manageBookings':
-        return <ManageBookingsComponent />; 
+        return <ManageBookings/>; 
       case 'settings':
         return <UserSettings />; 
       default:
