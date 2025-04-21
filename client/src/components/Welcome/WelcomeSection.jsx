@@ -20,7 +20,7 @@ const WelcomeSection = () => {
   return (
     <div className="welcome-container">
       <div className="welcome-card">
-        <div className="welcome-header">
+        <div className="welcome-header ">
           <div className="welcome-intro">
             <h2 className="welcome-title">Welcome to Director Dashboard</h2>
             <p className="welcome-subtitle">Select a section from the sidebar to manage different aspects of the system.</p>
@@ -28,6 +28,7 @@ const WelcomeSection = () => {
           </div>
           <div className="welcome-graphics">
             <div className="welcome-illustration"></div>
+            
           </div>
         </div>
         

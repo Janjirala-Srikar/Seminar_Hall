@@ -199,7 +199,7 @@ function DirectorDashboard() {
               <h3>Admin Dashboard</h3>
             </div>
           </div>
-          <div className="director-navbar-right">
+          <div className="director-navbar-right ">
             <div className="director-profile-dropdown" ref={dropdownRef}>
               <div 
                 className="director-profile-trigger" 

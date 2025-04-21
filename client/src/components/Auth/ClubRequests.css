@@ -17,138 +17,180 @@
 
 /* Main container */
 .club-requests-container {
-  background-color: var(--background-light);
-  padding: 20px 0;
+  background-color: transparent;
+  padding: 1px;
+  max-width: 1300px;
+  margin: 0 auto;
 }
 
 /* Section title */
 .section-title {
   color: var(--primary);
-  font-weight: 600;
-  margin-bottom: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.1rem;
+  position: relative;
+  padding-bottom: 0.5rem;
+  width: 30rem;
 }
 
-/* Club cards - fixed structure for consistent height */
+/* .section-title:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background-color: var(--primary);
+} */
+
+/* Club cards */
 .club-card {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: var(--white);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
   border: none;
-  border-radius: 8px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  height: 100%; /* Enforce consistent height */
+  border-radius: 12px;
+  transition: all 0.25s ease;
+  height: 100%;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  position: relative;
 }
 
 .club-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
 }
 
-/* Card status indicators */
-.approved-card {
-  border-top: 4px solid var(--success);
+/* Status indicators - subtle top accent instead of full border */
+.club-card:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  z-index: 1;
 }
 
-.pending-card {
-  border-top: 4px solid var(--light-medium-gray);
+.approved-card:before {
+  background-color: var(--success);
+}
+
+.pending-card:before {
+  background-color: var(--primary);
 }
 
 /* Card header with club name */
 .card-title.club-name {
-  color: var(--dark-gray);
-  font-size: 1.25rem;
+  color: var(--darker-gray);
+  font-size: 1.35rem;
   font-weight: 600;
-  margin-bottom: 1.5rem;
-  text-align: center;
-  /* Apply text truncation if needed */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--very-light-gray);
+  text-align: left;
 }
 
-/* Card body takes most of the space but has a fixed layout */
+/* Card body with improved spacing */
 .card-body {
-  flex: 1 0 auto; /* Takes available space but doesn't shrink */
-  padding: 1.2 rem;
+  flex: 1;
+  padding: 1.5rem 1.5rem 0.75rem;
 }
 
-/* Info rows with consistent spacing */
+/* Info rows with improved spacing and layout */
 .club-details {
-  margin-bottom: 0.3rem;
+  margin-bottom: 1rem;
 }
 
 .info-row {
   display: flex;
-  margin-bottom: 0.75rem;
-  line-height: 1.5;
+  margin-bottom: 1rem;
+  align-items: flex-start;
 }
 
 .info-label {
   font-weight: 600;
   color: var(--dark-gray);
-  width: 5rem; /* Fixed width for labels */
+  width: 5.5rem;
   flex-shrink: 0;
 }
 
 .info-value {
   color: var(--medium-gray);
   word-break: break-word;
+  flex: 1;
 }
 
-/* Status badges */
+/* Status badges - more modern and visually appealing */
 .status-badge {
-  display: inline-block;
-  padding: 0.65rem 0.65rem;
-  border-radius: 50px;
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.75rem;
+  border-radius: 30px;
+  font-size: 0.8rem;
   font-weight: 500;
-  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.status-badge:before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
 }
 
 .pending-badge {
-  background-color: var(--light-medium-gray);
-  color: var(--white);
+  background-color: rgba(130, 0, 26, 0.1);
+  color: var(--primary);
+}
+
+.pending-badge:before {
+  background-color: var(--primary);
 }
 
 .approved-badge {
-  background-color: var(--success);
-  color: var(--white);
+  background-color: rgba(40, 167, 69, 0.1);
+  color: var(--success);
 }
 
-/* Card footer - maintains consistent height */
+.approved-badge:before {
+  background-color: var(--success);
+}
+
+/* Card footer - clean design */
 .card-footer {
   background-color: transparent;
   border-top: none;
-  padding: 0 1.5rem 1.5rem;
-  margin-top: auto; /* Push to bottom */
-  height: 3.5rem; /* Fixed height for the action area */
-  display: flex;
-  align-items: center;
-}
-
-/* Placeholder for approved cards to maintain height */
-.approved-placeholder {
-  height: 2.375rem; /* Same height as button */
-  width: 100%;
+  padding: 0.75rem 1.5rem 1.5rem;
+  margin-top: auto;
 }
 
 /* Button styling */
 .btn-primary {
   background-color: var(--primary);
   border-color: var(--primary);
+  border-radius: 30px;
+  padding: 0.6rem 1.5rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
   transition: all 0.2s ease;
-  height: 2.375rem; /* Fixed button height */
+  box-shadow: 0 2px 6px rgba(130, 0, 26, 0.2);
 }
 
 .btn-primary:hover {
   background-color: var(--primary-light);
   border-color: var(--primary-light);
+  box-shadow: 0 4px 8px rgba(130, 0, 26, 0.3);
 }
 
 .btn-primary:disabled {
   background-color: var(--light-medium-gray);
   border-color: var(--light-medium-gray);
-  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: none;
 }
 
 /* Spinner styling */
@@ -156,6 +198,19 @@
   width: 1rem;
   height: 1rem;
   border-width: 0.15em;
+  vertical-align: -0.125em;
+}
+
+/* Improved card grid layout */
+.row.g-4 {
+  margin-left: -1rem;
+  margin-right: -1rem;
+}
+
+.col-md-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  margin-bottom: 2rem;
 }
 
 /* For smaller screens */
@@ -167,5 +222,9 @@
   .info-label {
     width: 100%;
     margin-bottom: 0.25rem;
+  }
+  
+  .card-title.club-name {
+    font-size: 1.25rem;
   }
 }
