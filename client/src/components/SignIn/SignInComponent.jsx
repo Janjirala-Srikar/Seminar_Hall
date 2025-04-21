@@ -72,22 +72,48 @@ function SignInComponent() {
     }));
   };
 
-  // Save user data to session storage
-  const saveUserToSessionStorage = (user, userType) => {
-    // Extract the needed information from the user object
-    const userData = {
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName || '',
-      userType: userType, // 'faculty' or 'admin'
-      photoURL: user.photoURL || '',
-      emailVerified: user.emailVerified,
-      lastLoginTime: new Date().toISOString()
-    };
-    
-    // Save to session storage
-    sessionStorage.setItem('currentUser', JSON.stringify(userData));
-    console.log('User data saved to session storage:', userData);
+  // Fetch user data from backend and navigate based on role
+  const fetchUserAndNavigate = async (firebaseUid) => {
+    try {
+      const response = await fetch('http://localhost:5000/api/users');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch user data');
+      }
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error('Failed to retrieve user data');
+      }
+      
+      // Find the user with matching firebaseUid
+      const currentUser = data.data.find(user => user.firebaseUid === firebaseUid);
+      
+      if (!currentUser) {
+        throw new Error('User not found in backend');
+      }
+      
+      // Save full user data to session storage
+      sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+      
+      // Navigate based on role
+      if (currentUser.role === 'admin') {
+        navigate('/director');
+      } else if (currentUser.role === 'club_admin') {
+        navigate('/home');
+      } else {
+        // Default route for other roles
+        navigate('/home');
+      }
+      
+      console.log('User authenticated and routed successfully');
+      
+    } catch (error) {
+      console.error('Error fetching user data:', error.message);
+      setError('Failed to retrieve user information. Please try again.');
+      setLoading(false);
+    }
   };
 
   // Handle user login for Faculty (User)
@@ -105,16 +131,12 @@ function SignInComponent() {
       const userCredential = await signInWithEmailAndPassword(auth, userEmail, formInputs.facultyPassword);
       const user = userCredential.user;
       
-      // Save user data to session storage
-      saveUserToSessionStorage(user, 'faculty');
+      // Now fetch user data from backend and navigate based on role
+      await fetchUserAndNavigate(user.uid);
       
-      console.log('User logged in successfully');
-      // Navigate to Home page on successful login
-      navigate('/Home');
     } catch (error) {
       console.error('Login error:', error.message);
       setError(error.message);
-    } finally {
       setLoading(false);
     }
   };
@@ -129,16 +151,12 @@ function SignInComponent() {
       const userCredential = await signInWithEmailAndPassword(auth, formInputs.adminEmail, formInputs.adminPassword);
       const user = userCredential.user;
       
-      // Save user data to session storage
-      saveUserToSessionStorage(user, 'admin');
+      // Now fetch user data from backend and navigate based on role
+      await fetchUserAndNavigate(user.uid);
       
-      console.log('Admin logged in successfully');
-      // Navigate to Home page on successful login
-      navigate('/Home');
     } catch (error) {
       console.error('Admin login error:', error.message);
       setError(error.message);
-    } finally {
       setLoading(false);
     }
   };
@@ -155,26 +173,13 @@ function SignInComponent() {
       const userCredential = await createUserWithEmailAndPassword(auth, formInputs.clubEmail, 'temporary-password');
       const user = userCredential.user;
       
-      // Save additional club data to session storage
-      const clubData = {
-        uid: user.uid,
-        email: user.email,
-        clubName: formInputs.clubName,
-        facultyCoordinator: formInputs.facultyCoordinator,
-        userType: 'club',
-        createdAt: new Date().toISOString()
-      };
+      // In a real application, you would send this data to your backend API
+      // For now, we'll just redirect to home
+      navigate('/home');
       
-      // Save to session storage
-      sessionStorage.setItem('currentUser', JSON.stringify(clubData));
-      
-      console.log('Club registered successfully');
-      // Navigate to Home or a success page
-      navigate('/Home');
     } catch (error) {
       console.error('Club registration error:', error.message);
       setError(error.message);
-    } finally {
       setLoading(false);
     }
   };
@@ -209,23 +214,36 @@ function SignInComponent() {
     const storedUser = sessionStorage.getItem('currentUser');
     if (storedUser) {
       const userData = JSON.parse(storedUser);
-      const now = new Date();
-      const lastLogin = new Date(userData.lastLoginTime);
-      const hoursSinceLogin = (now - lastLogin) / (1000 * 60 * 60);
-        
-      // If the user logged in less than 24 hours ago, auto-redirect to home
-      if (hoursSinceLogin < 24) {
-        navigate('/signin');
+      
+      // Check if we have role information
+      if (userData.role) {
+        if (userData.role === 'admin') {
+          navigate('/director');
+        } else if (userData.role === 'club_admin') {
+          navigate('/home');
+        } else {
+          navigate('/home');
+        }
       } else {
-        // If session is expired, clear it
+        // If no role, clear session and let the user log in again
         sessionStorage.removeItem('currentUser');
       }
     }
   }, [navigate]);
 
+  // Loading spinner component
+  const LoadingSpinner = () => (
+    <div className="loading-spinner">
+      <div className="spinner"></div>
+      <p>Please wait...</p>
+    </div>
+  );
+
   // Render the login page with tabs
   const renderLoginPage = () => (
     <div className={`login-wrapper ${animationState === 'enter' ? 'page-enter' : 'page-exit'}`}>
+      {loading && <LoadingSpinner />}
+      
       <div className="tabs-container">
         <div className="tabs">
           <button 
@@ -366,9 +384,11 @@ function SignInComponent() {
     </div>
   );
 
-  // Render the club registration page (referenced but missing in the provided code)
+  // Render the club registration page
   const renderClubPage = () => (
     <div className={`login-wrapper ${animationState === 'enter' ? 'page-enter' : 'page-exit'}`}>
+      {loading && <LoadingSpinner />}
+      
       <div className="card login-card">
         <div className="card-body">
           <h2 className="card-title">Club Registration</h2>
@@ -441,6 +461,8 @@ function SignInComponent() {
   // Render the forgot password page
   const renderForgotPasswordPage = () => (
     <div className={`login-wrapper ${animationState === 'enter' ? 'page-enter' : 'page-exit'}`}>
+      {loading && <LoadingSpinner />}
+      
       <div className="card forgot-card">
         <div className="card-body">
           <h2 className="card-title">Reset Password</h2>
@@ -515,6 +537,34 @@ function SignInComponent() {
           color: #666;
           margin-bottom: 20px;
           font-style: italic;
+        }
+        
+        .loading-spinner {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(255, 255, 255, 0.8);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+        }
+        
+        .spinner {
+          width: 50px;
+          height: 50px;
+          border: 5px solid #f3f3f3;
+          border-top: 5px solid #3498db;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
       `}</style>
     </div>

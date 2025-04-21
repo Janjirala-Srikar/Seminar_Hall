@@ -34,6 +34,10 @@ Content-Type: application/json
   "isConfirmed": false
 }
 
+### Get all users
+GET http://localhost:5000/api/users
+Content-Type: application/json
+
 
 ###
 PUT http://localhost:5000/api/bookings/6801543db31ed4f228ee0b41

@@ -147,7 +147,7 @@ function Dashboard() {
     try {
       await signOut(auth);
       setDropdownOpen(false);
-      // The navigation to '/' will happen automatically due to the auth state change
+      sessionStorage.clear();
     } catch (error) {
       console.error('Error signing out:', error);
     }
