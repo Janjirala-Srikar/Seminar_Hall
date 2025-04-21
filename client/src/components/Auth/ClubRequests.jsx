@@ -223,7 +223,9 @@ function ClubRequests() {
                         {club.status ? "Approved" : "Pending"}
                       </span>
                     </div>
+                    
                   </div>
+                  
                 </div>
                 
                 {/* Fixed action area at the bottom - always takes same space whether visible or not */}
