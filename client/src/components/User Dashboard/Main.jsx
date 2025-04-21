@@ -199,7 +199,7 @@ function Dashboard() {
               <FaBars />
             </button>
             <div className="hbs_brand">
-              <h3>Hall Booking System</h3>
+              <h3>User DashBoard</h3>
             </div>
           </div>
           <div className="hbs_navbar-right">

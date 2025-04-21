@@ -256,14 +256,11 @@ const BookingCalendar = () => {
   maxTime.setHours(17, 0, 0);
 
   return (
-    <div className="container mt-4">
+    <div className="container">
       <div className="row justify-content-center">
         <div className="col-lg-10 col-md-12">
           <div className="card shadow-lg">
-            <div className="card-header bg-primary text-white d-flex align-items-center">
-              <BsCalendar3 className="me-2" size={24} />
-              <h2 className="mb-0">Seminar Hall Booking Calendar</h2>
-            </div>
+           
             <div className="card-body">
               {/* Hall Filter Dropdown */}
               <div className="row mb-3">

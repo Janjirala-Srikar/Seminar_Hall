@@ -212,7 +212,7 @@ function SignInComponent() {
       const now = new Date();
       const lastLogin = new Date(userData.lastLoginTime);
       const hoursSinceLogin = (now - lastLogin) / (1000 * 60 * 60);
-      
+        
       // If the user logged in less than 24 hours ago, auto-redirect to home
       if (hoursSinceLogin < 24) {
         navigate('/signin');
