@@ -590,7 +590,7 @@ const BookingCalendar = ({ initialSelectedHall, userole }) => {
               
               {!initialSelectedHall && (
                 <div className="row mb-3">
-                  <div className="col-md-4">
+                  <div className="col-md-5">
                     <div className="input-group">
                       <span className="input-group-text bg-primary text-white">
                         <BsFilter size={18} />
