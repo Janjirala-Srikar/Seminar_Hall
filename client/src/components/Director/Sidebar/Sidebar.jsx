@@ -9,11 +9,11 @@ function Sidebar({ collapsed, activeSection, setActiveSection }) {
       label: 'Dashboard',
       icon: <FaHome className="sidebar-icon" />
     },
-    // {
-    //   id: 'bookingCalender',
-    //   label: 'Booking Calendar',
-    //   icon: <FaCalendarAlt className="sidebar-icon" />
-    // },
+   {
+     id: 'bookingCalender',
+    label: 'Booking Calendar',
+     icon: <FaCalendarAlt className="sidebar-icon" />
+   },
     {
       id: 'bookingRequests',
       label: 'Booking Requests',

@@ -148,7 +148,7 @@ function DirectorDashboard() {
       await signOut(auth);
       setDropdownOpen(false);
       sessionStorage.clear();
-      // The navigation to '/' will happen automatically due to the auth state change
+      
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -162,8 +162,8 @@ function DirectorDashboard() {
   const renderContent = () => {
     console.log("Rendering content for:", activeSection);
     switch (activeSection) {
-      // case 'bookingCalender':
-      //   return <BookingCalendar />;
+      case 'bookingCalender':
+        return <BookingCalendar  userole="director"/>;
       case 'bookingRequests':
         return <RequestDashboard />;
       case 'clubRequests':

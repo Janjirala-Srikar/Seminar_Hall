@@ -1,11 +1,11 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
-import { BsCalendar3, BsClock, BsCheckCircle, BsPerson, BsCardText, BsBuilding, BsFilter } from "react-icons/bs";
+import { BsCalendar3, BsClock, BsCheckCircle, BsPerson, BsCardText, BsBuilding, BsFilter, BsExclamationTriangle, BsInfoCircle } from "react-icons/bs";
 import axios from "axios";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "bootstrap/dist/css/bootstrap.min.css";
-import './Calender.css';
+import './Calender.css';  
 
 const localizer = momentLocalizer(moment);
 const API_URL = "http://localhost:5000/api/bookings";
@@ -17,7 +17,7 @@ const AVAILABLE_HALLS = [
   "APJ Abdul Kalam Hall"
 ];
 
-const BookingCalendar = ({ initialSelectedHall }) => {
+const BookingCalendar = ({ initialSelectedHall, userole }) => {
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
   const [allBookings, setAllBookings] = useState([]); // Store all bookings including pending
@@ -28,6 +28,8 @@ const BookingCalendar = ({ initialSelectedHall }) => {
   const [error, setError] = useState(null);
   const [selectedHall, setSelectedHall] = useState(initialSelectedHall || "All Halls");
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [userRole, setUserRole] = useState(userole || ''); // Track user role
+  const [pendingBookings, setPendingBookings] = useState([]); // Track pending bookings for director
   const [formData, setFormData] = useState({
     title: "New Booking",
     bookedBy: "",
@@ -43,6 +45,42 @@ const BookingCalendar = ({ initialSelectedHall }) => {
       hall: initialSelectedHall || ""
     }));
   }, [initialSelectedHall]);
+
+  // Set userRole from prop
+  useEffect(() => {
+    if (userole) {
+      setUserRole(userole);
+    } else {
+      // Get user information from session storage on component mount
+      try {
+        // Try to get userData from sessionStorage
+        let userData = null;
+        
+        // Check all sessionStorage keys
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const key = sessionStorage.key(i);
+          try {
+            const value = sessionStorage.getItem(key);
+            const parsedValue = JSON.parse(value);
+            if (parsedValue && parsedValue.userType) {
+              userData = parsedValue;
+              break;
+            }
+          } catch (e) {
+            // Skip if can't parse as JSON
+            continue;
+          }
+        }
+
+        // Set the user role if found
+        if (userData && userData.userType) {
+          setUserRole(userData.userType);
+        }
+      } catch (error) {
+        console.error("Error retrieving user data:", error);
+      }
+    }
+  }, [userole]);
 
   // Fetch all bookings from the backend
   const fetchBookings = useCallback(async () => {
@@ -66,6 +104,12 @@ const BookingCalendar = ({ initialSelectedHall }) => {
       
       // Store all bookings for reference
       setAllBookings(formattedEvents);
+      
+      // Get pending bookings for director view
+      const pendingBookingsList = formattedEvents.filter(event => 
+        !event.isConfirmed && event.status === "pending"
+      );
+      setPendingBookings(pendingBookingsList);
       
       // Show only confirmed bookings on the calendar
       const confirmedEvents = formattedEvents.filter(event => 
@@ -100,6 +144,11 @@ const BookingCalendar = ({ initialSelectedHall }) => {
   }, []);
 
   const handleDateClick = useCallback((date) => {
+    // If user is director, don't allow drilling down to specific dates
+    if (userRole === 'director') {
+      return; // Simply return without changing the view
+    }
+    
     setDate(date);
     setView("day");
     
@@ -108,7 +157,7 @@ const BookingCalendar = ({ initialSelectedHall }) => {
     setEvents(filteredEvts);
     setSelectedSlot(null);
     setSelectedBooking(null);
-  }, [events]);
+  }, [events, userRole]);
 
   const handleHallChange = (e) => {
     setSelectedHall(e.target.value);
@@ -135,6 +184,12 @@ const BookingCalendar = ({ initialSelectedHall }) => {
     return date < now;
   };
 
+  // Check if the date is in the current year
+  const isCurrentYear = (date) => {
+    const currentYear = new Date().getFullYear();
+    return date.getFullYear() === currentYear;
+  };
+
   // Check if the slot conflicts with any CONFIRMED bookings only
   const checkForConflicts = (start, end, hall) => {
     // Check against ONLY confirmed bookings
@@ -156,6 +211,11 @@ const BookingCalendar = ({ initialSelectedHall }) => {
 
   // Handle clicking on an existing event
   const handleEventClick = (event) => {
+    // If user is director, don't allow interaction with events
+    if (userRole === 'director') {
+      return; // Simply return without doing anything
+    }
+    
     // Don't do anything with temporary events
     if (event.isTemporary) return;
     
@@ -207,15 +267,33 @@ const BookingCalendar = ({ initialSelectedHall }) => {
           title: response.data.title + (response.data.isConfirmed || response.data.status === "confirmed" ? " (Already Booked)" : "")
         });
       }
+      
+      // Update pending bookings for director view
+      const pendingBookingsList = updatedAllBookings.filter(event => 
+        !event.isConfirmed && event.status === "pending"
+      );
+      setPendingBookings(pendingBookingsList);
     } catch (err) {
       console.error("Error fetching booking status:", err);
     }
   };
 
+  // Modified handleSlotSelection function with role check
   const handleSlotSelection = (slotInfo) => {
+    // If user is a director, they should not be able to book slots
+    if (userRole === 'director') {
+      return; // For directors, simply do nothing when trying to select a slot
+    }
+    
     // First check if the selected date is in the past
     if (isPastDate(new Date(slotInfo.start))) {
       alert("Cannot book dates in the past. Please select a current or future date.");
+      return;
+    }
+
+    // Check if the selected date is in the current year
+    if (!isCurrentYear(new Date(slotInfo.start))) {
+      alert("Bookings are only allowed for the current year. Please select a date within this year.");
       return;
     }
 
@@ -310,7 +388,19 @@ const BookingCalendar = ({ initialSelectedHall }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  
+  
+  // Handle rejection of a booking (for directors only)
+ 
+
+  // Updated handleConfirmBooking with user role check
   const handleConfirmBooking = async () => {
+    // If user is a director, they should not be able to book slots
+    if (userRole === 'director') {
+      alert("As a director, you are not authorized to create bookings. Please contact a faculty member or staff to create a booking.");
+      return;
+    }
+    
     // Add validation for hall selection
     if (!formData.hall) {
       alert("Please select a hall before confirming booking");
@@ -320,6 +410,12 @@ const BookingCalendar = ({ initialSelectedHall }) => {
     // Double-check that the selected slot is not in the past
     if (isPastTime(selectedSlot.start)) {
       alert("Cannot book time slots in the past. Please select a current or future time slot.");
+      return;
+    }
+    
+    // Double-check year restriction
+    if (!isCurrentYear(selectedSlot.start)) {
+      alert("Bookings are only allowed for the current year. Please select a date within this year.");
       return;
     }
 
@@ -465,9 +561,9 @@ const BookingCalendar = ({ initialSelectedHall }) => {
     };
   };
 
-  // Custom date cell styling to gray out past dates
+  // Custom date cell styling to gray out past dates and dates not in the current year
   const dayPropGetter = (date) => {
-    if (isPastDate(date)) {
+    if (isPastDate(date) || !isCurrentYear(date)) {
       return {
         className: 'past-date',
         style: {
@@ -491,7 +587,7 @@ const BookingCalendar = ({ initialSelectedHall }) => {
         <div className="col-lg-12 col-md-12">
           <div className="card shadow-lg">
             <div className="card-body">
-              {/* Hall Filter Dropdown - Only show if not initializing with specific hall */}
+              
               {!initialSelectedHall && (
                 <div className="row mb-3">
                   <div className="col-md-4">
@@ -524,10 +620,12 @@ const BookingCalendar = ({ initialSelectedHall }) => {
                       <div style={{ width: 16, height: 16, backgroundColor: '#FF9999', marginRight: 5 }}></div>
                       <small>Confirmed (Already Booked)</small>
                     </div>
-                    <div className="d-flex align-items-center">
-                      <div style={{ width: 16, height: 16, backgroundColor: '#98FB98', marginRight: 5 }}></div>
-                      <small>Selected Slot</small>
-                    </div>
+                    {userRole !== 'director' && (
+                      <div className="d-flex align-items-center">
+                        <div style={{ width: 16, height: 16, backgroundColor: '#98FB98', marginRight: 5 }}></div>
+                        <small>Selected Slot</small>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -553,14 +651,14 @@ const BookingCalendar = ({ initialSelectedHall }) => {
                   date={date}
                   onView={setView}
                   onNavigate={handleNavigate}
-                  selectable={true}
+                  selectable={userRole !== 'director'} // Only allow slot selection for non-directors
                   step={60}
                   timeslots={1}
                   min={minTime}
                   max={maxTime}
                   onSelectSlot={handleSlotSelection}
                   onSelectEvent={handleEventClick}
-                  onDrillDown={handleDateClick}
+                  onDrillDown={userRole === 'director' ? null : handleDateClick} // Only allow drilling down for non-directors
                   defaultView="month"
                   eventPropGetter={eventStyleGetter}
                   dayPropGetter={dayPropGetter}
@@ -589,65 +687,60 @@ const BookingCalendar = ({ initialSelectedHall }) => {
                         </p>
                       )}
                       <p className="card-text">
-                        <strong>Status:</strong> Confirmed
+                        <strong>Status:</strong> {selectedBooking.status === "pending" ? "Pending Approval" : "Confirmed"}
                       </p>
+                      
+                      {/* Director-specific actions for pending bookings */}
+                      
+                      
+                      
                     </div>
                   </div>
-                  
-                  <button 
-                    className="btn btn-primary btn-lg w-100"
-                    onClick={() => {
-                      setSelectedBooking(null);
-                      setSelectedSlot(null);
-                    }}
-                  >
-                    Close Details
-                  </button>
                 </div>
               )}
               
-              {selectedSlot && !selectedBooking && (
+              {selectedSlot && !selectedBooking && userRole !== 'director' && (
                 <div className="mt-4">
-                  <div className="alert alert-info d-flex align-items-center">
-                    <BsClock className="me-2" size={20} />
-                    <div>
-                      <strong>Selected Time:</strong> {moment(selectedSlot.start).format('MMMM D, YYYY h:mm A')} - {moment(selectedSlot.end).format('h:mm A')}
+                  <div className="card">
+                    <div className="card-header bg-primary text-white">
+                      <h5 className="mb-0">create new Booking</h5>
                     </div>
-                  </div>
-                  
-                  <div className="card mb-3">
                     <div className="card-body">
-                      <div className="mb-3">
-                        <label htmlFor="title" className="form-label">
-                          <BsCardText className="me-2" />
-                          Booking Title
-                        </label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          id="title"
-                          name="title"
-                          value={formData.title}
-                          onChange={handleInputChange}
-                          required
-                        />
-                      </div>
-                      
-                      {/* Hall selection - If initialized with specific hall, show readonly field */}
-                      <div className="mb-3">
-                        <label htmlFor="hall" className="form-label">
-                          <BsBuilding className="me-2" />
-                          {initialSelectedHall ? "Selected Hall" : "Select Hall"}
-                        </label>
-                        {initialSelectedHall ? (
+                      <form>
+                        <div className="mb-3">
+                          <label htmlFor="title" className="form-label d-flex align-items-center">
+                            <BsCalendar3 className="me-2" /> Event Title
+                          </label>
                           <input
                             type="text"
                             className="form-control"
-                            id="hall"
-                            value={initialSelectedHall}
-                            readOnly
+                            id="title"
+                            name="title"
+                            value={formData.title}
+                            onChange={handleInputChange}
+                            required
                           />
-                        ) : (
+                        </div>
+                        
+                        <div className="mb-3">
+                          <label htmlFor="bookedBy" className="form-label d-flex align-items-center">
+                            <BsPerson className="me-2" /> Your name
+                          </label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            id="bookedBy"
+                            name="bookedBy"
+                            value={formData.bookedBy}
+                            onChange={handleInputChange}
+                            required
+                          />
+                        </div>
+                        
+                        <div className="mb-3">
+                          <label htmlFor="hall" className="form-label d-flex align-items-center">
+                            <BsBuilding className="me-2" /> Hall
+                          </label>
                           <select
                             className="form-select"
                             id="hall"
@@ -656,56 +749,61 @@ const BookingCalendar = ({ initialSelectedHall }) => {
                             onChange={handleInputChange}
                             required
                           >
-                            <option value="" disabled>-- Select a Hall --</option>
+                            <option value="">Select Hall</option>
                             {AVAILABLE_HALLS.map((hall, index) => (
                               <option key={index} value={hall}>
                                 {hall}
                               </option>
                             ))}
                           </select>
-                        )}
-                      </div>
-                      
-                      <div className="mb-3">
-                        <label htmlFor="bookedBy" className="form-label">
-                          <BsPerson className="me-2" />
-                          Your Name
-                        </label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          id="bookedBy"
-                          name="bookedBy"
-                          value={formData.bookedBy}
-                          onChange={handleInputChange}
-                          required
-                        />
-                      </div>
-                      
-                      <div className="mb-3">
-                        <label htmlFor="description" className="form-label">
-                          <BsCardText className="me-2" />
-                          Description (Optional)
-                        </label>
-                        <textarea
-                          className="form-control"
-                          id="description"
-                          name="description"
-                          rows="3"
-                          value={formData.description}
-                          onChange={handleInputChange}
-                        ></textarea>
-                      </div>
+                        </div>
+                        
+                        <div className="mb-3">
+                          <label htmlFor="description" className="form-label d-flex align-items-center">
+                            <BsCardText className="me-2" /> Description
+                          </label>
+                          <textarea
+                            className="form-control"
+                            id="description"
+                            name="description"
+                            rows="3"
+                            value={formData.description}
+                            onChange={handleInputChange}
+                          ></textarea>
+                        </div>
+                        
+                        <div className="mb-3">
+                          <label className="form-label d-flex align-items-center">
+                            <BsClock className="me-2" /> Selected Time
+                          </label>
+                          <p className="form-control-static">
+                            {moment(selectedSlot.start).format('MMMM D, YYYY h:mm A')} - {moment(selectedSlot.end).format('h:mm A')}
+                          </p>
+                        </div>
+                        
+                        <div className="d-flex gap-2">
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={handleConfirmBooking}
+                          >
+                            <BsCheckCircle  />Request  Booking
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => {
+                              setSelectedSlot(null);
+                              const filteredEvts = events.filter(event => !event.isTemporary);
+                              setEvents(filteredEvts);
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
                     </div>
                   </div>
-                  
-                  <button 
-                    className="btn btn-success btn-lg w-100"
-                    onClick={handleConfirmBooking}
-                  >
-                    <BsCheckCircle className="me-2" />
-                    Request Booking
-                  </button>
                 </div>
               )}
             </div>
