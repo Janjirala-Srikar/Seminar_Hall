@@ -16,7 +16,7 @@ Educational institutions often face challenges with seminar hall management:
 
 The **Seminar Hall Management System** provides a digital solution to streamline the entire process of booking and managing seminar halls through an intuitive and comprehensive platform.
 
-## ✨ Features
+## ✨ Features.
 
 1. **📅 Intuitive Booking System**  
    Easy-to-use interface for checking availability and booking seminar halls with conflict prevention.
